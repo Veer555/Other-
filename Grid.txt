@@ -1,0 +1,38 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class my : MonoBehaviour
+{
+    [SerializeField] private int rows = 5;
+    [SerializeField] private int cols = 8;
+    [SerializeField] private float tileSize = 1;
+
+    private void Start()
+    {
+        GenerateGrid();
+    }
+
+    private void GenerateGrid()
+    {
+        GameObject referanceTile = (GameObject)Instantiate(Resources.Load("GrassTile"));
+
+        for (int row = 0; row < rows; row++)
+        {
+            for (int col = 0; col < cols; col++)
+            {
+                GameObject tile = (GameObject)Instantiate(referanceTile, transform);
+
+                float posX = col * tileSize;
+                float posY = row * tileSize;
+
+                tile.transform.position = new Vector2(posX, posY);
+            }
+        }
+        Destroy(referanceTile);
+
+        float grid_W = cols * tileSize;
+        float grid_H = rows * tileSize;
+        transform.position = new Vector2(-grid_W / 2 + tileSize / 2, grid_H / 2 - tileSize / 2);
+    }
+}
