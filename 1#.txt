@@ -1,0 +1,86 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class TicTacToeManager : MonoBehaviour
+{
+    public GameObject buttonPrefab;
+    public Transform buttonParent;
+    public Text gameOverText;
+
+    private Button[,] buttons;
+    private bool isPlayerX = true;
+    private bool isGameFinished = false;
+
+    private void Start()
+    {
+        InitializeBoard();
+    }
+
+    private void InitializeBoard()
+    {
+        buttons = new Button[3, 3];
+
+        for (int row = 0; row < 3; row++)
+        {
+            for (int col = 0; col < 3; col++)
+            {
+                GameObject buttonGO = Instantiate(buttonPrefab, buttonParent);
+                Button button = buttonGO.GetComponent<Button>();
+                int r = row;
+                int c = col;
+
+                button.onClick.AddListener(() => OnButtonClick(r, c));
+                buttons[row, col] = button;
+            }
+        }
+    }
+
+    private void OnButtonClick(int row, int col)
+    {
+        if (isGameFinished || buttons[row, col].GetComponentInChildren<Text>().text != "")
+            return;
+
+        buttons[row, col].GetComponentInChildren<Text>().text = isPlayerX ? "X" : "O";
+        isPlayerX = !isPlayerX;
+
+        if (CheckForWin(row, col))
+        {
+            gameOverText.text = isPlayerX ? "Player O wins!" : "Player X wins!";
+            isGameFinished = true;
+        }
+    }
+
+    private bool CheckForWin(int row, int col)
+    {
+        // Check the current row
+        if (buttons[row, 0].GetComponentInChildren<Text>().text == buttons[row, 1].GetComponentInChildren<Text>().text &&
+            buttons[row, 1].GetComponentInChildren<Text>().text == buttons[row, 2].GetComponentInChildren<Text>().text)
+        {
+            return true;
+        }
+
+        // Check the current column
+        if (buttons[0, col].GetComponentInChildren<Text>().text == buttons[1, col].GetComponentInChildren<Text>().text &&
+            buttons[1, col].GetComponentInChildren<Text>().text == buttons[2, col].GetComponentInChildren<Text>().text)
+        {
+            return true;
+        }
+
+        // Check the diagonals
+        if ((row == col || row + col == 2) &&
+            (buttons[0, 0].GetComponentInChildren<Text>().text == buttons[1, 1].GetComponentInChildren<Text>().text &&
+             buttons[1, 1].GetComponentInChildren<Text>().text == buttons[2, 2].GetComponentInChildren<Text>().text))
+        {
+            return true;
+        }
+
+        if ((row == col || row + col == 2) &&
+            (buttons[0, 2].GetComponentInChildren<Text>().text == buttons[1, 1].GetComponentInChildren<Text>().text &&
+             buttons[1, 1].GetComponentInChildren<Text>().text == buttons[2, 0].GetComponentInChildren<Text>().text))
+        {
+            return true;
+        }
+
+        return false;
+    }
+}
