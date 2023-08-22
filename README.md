@@ -199,3 +199,113 @@ public class Cell : MonoBehaviour
 This script is responsible for managing individual cells within the grid. It holds information about the cell's position, whether it's occupied, and which player has marked it. The SetPlayer method updates the cell's state and triggers the game logic to make a move. The UpdateCellText method updates the visual representation of the cell with "X" or "O" based on the player's mark.
 
 Attach this script to your cell prefab and make sure to link the cellText field to a UI Text element that displays the "X" or "O" on the cell.
+
+
+
+using UnityEngine;
+using UnityEngine.UI;
+
+public class GameManager : MonoBehaviour
+{
+    public int gridSize = 3; // Change this to your desired grid size (between 3 and 8)
+    public Button buttonPrefab;
+    public Text resultText;
+    private char[] grid;
+    private Button[] buttons;
+
+    private void Start()
+    {
+        InitializeGrid();
+    }
+
+    private void InitializeGrid()
+    {
+        grid = new char[gridSize * gridSize];
+        buttons = new Button[gridSize * gridSize];
+
+        for (int i = 0; i < grid.Length; i++)
+        {
+            Button button = Instantiate(buttonPrefab, transform);
+            int row = i / gridSize;
+            int col = i % gridSize;
+            button.GetComponent<RectTransform>().anchoredPosition = new Vector2(col * 50, -row * 50);
+            int index = i; // Capture the index for the lambda
+            button.onClick.AddListener(() => OnButtonClick(index, button));
+            buttons[i] = button;
+        }
+    }
+
+    private void OnButtonClick(int index, Button button)
+    {
+        if (grid[index] == '\0')
+        {
+            grid[index] = 'X'; // For simplicity, assume player X goes first
+            button.GetComponentInChildren<Text>().text = "X";
+
+            if (CheckWinCondition(index, 'X'))
+            {
+                resultText.text = "Player X wins!";
+            }
+            // Implement player O's turn here
+
+            // Implement a draw condition here
+        }
+    }
+
+    private bool CheckWinCondition(int moveIndex, char symbol)
+    {
+        int row = moveIndex / gridSize;
+        int col = moveIndex % gridSize;
+
+        // Check row
+        bool rowWin = true;
+        for (int c = 0; c < gridSize; c++)
+        {
+            if (grid[row * gridSize + c] != symbol)
+            {
+                rowWin = false;
+                break;
+            }
+        }
+
+        // Check column
+        bool colWin = true;
+        for (int r = 0; r < gridSize; r++)
+        {
+            if (grid[r * gridSize + col] != symbol)
+            {
+                colWin = false;
+                break;
+            }
+        }
+
+        // Check diagonals
+        bool diagonalWin = true;
+        if (row == col)
+        {
+            for (int i = 0; i < gridSize; i++)
+            {
+                if (grid[i * gridSize + i] != symbol)
+                {
+                    diagonalWin = false;
+                    break;
+                }
+            }
+        }
+
+        bool antiDiagonalWin = true;
+        if (row + col == gridSize - 1)
+        {
+            for (int i = 0; i < gridSize; i++)
+            {
+                if (grid[i * gridSize + (gridSize - 1 - i)] != symbol)
+                {
+                    antiDiagonalWin = false;
+                    break;
+                }
+            }
+        }
+
+        return rowWin || colWin || diagonalWin || antiDiagonalWin;
+    }
+}
