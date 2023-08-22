@@ -309,3 +309,9 @@ public class GameManager : MonoBehaviour
         return rowWin || colWin || diagonalWin || antiDiagonalWin;
     }
 }
+
+Create a UI Text object and a UI Button object in your scene. Attach the GameManager script to the GameObject containing the script. In the GameManager component, set the "Button Prefab" field to the UI Button you created. Also, assign the UI Text object to the "Result Text" field.
+
+Customize the button and text appearances in the Unity Editor according to your preferences.
+
+Implement the player O's turn logic and a draw condition in the OnButtonClick method.
