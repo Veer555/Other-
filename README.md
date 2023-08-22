@@ -147,3 +147,55 @@ public class Cell : MonoBehaviour
 }
 
 Remember that this is a basic example to get you started. You will need to expand and enhance the code to include win condition checks, end-game handling, player feedback, and more.
+
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Cell : MonoBehaviour
+{
+    private int player = 0; // 0 for empty, 1 for player 1, 2 for player 2
+    private int x;
+    private int y;
+    private TicTacToeGame gameController;
+    public Text cellText;
+
+    public void SetCoordinates(int xCoord, int yCoord)
+    {
+        x = xCoord;
+        y = yCoord;
+    }
+
+    public bool IsEmpty()
+    {
+        return player == 0;
+    }
+
+    public void SetPlayer(int playerNumber)
+    {
+        if (IsEmpty())
+        {
+            player = playerNumber;
+            UpdateCellText();
+            gameController.MakeMove(this);
+        }
+    }
+
+    public int GetPlayer()
+    {
+        return player;
+    }
+
+    public void SetTicTacToeGame(TicTacToeGame game)
+    {
+        gameController = game;
+    }
+
+    public void UpdateCellText()
+    {
+        cellText.text = player == 1 ? "X" : "O";
+    }
+}
+
+This script is responsible for managing individual cells within the grid. It holds information about the cell's position, whether it's occupied, and which player has marked it. The SetPlayer method updates the cell's state and triggers the game logic to make a move. The UpdateCellText method updates the visual representation of the cell with "X" or "O" based on the player's mark.
+
+Attach this script to your cell prefab and make sure to link the cellText field to a UI Text element that displays the "X" or "O" on the cell.
