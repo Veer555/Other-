@@ -315,3 +315,44 @@ Create a UI Text object and a UI Button object in your scene. Attach the GameMan
 Customize the button and text appearances in the Unity Editor according to your preferences.
 
 Implement the player O's turn logic and a draw condition in the OnButtonClick method.
++++++
+private bool CheckWinCondition()
+{
+    int gridSize = Mathf.RoundToInt(Mathf.Sqrt(buttonArray.Length)); // Calculate the grid size based on the button array length
+    char[] symbols = new char[gridSize * gridSize]; // Store symbols in a linear array
+
+    // Extract symbols from buttons and store them in the symbols array
+    for (int i = 0; i < buttonArray.Length; i++)
+    {
+        symbols[i] = buttonArray[i].GetComponentInChildren<Text>().text[0];
+    }
+
+    // Check rows, columns, and diagonals for a win
+    for (int i = 0; i < gridSize; i++)
+    {
+        // Check rows
+        if (symbols[i * gridSize] != '\0' && symbols[i * gridSize] == symbols[i * gridSize + 1] && symbols[i * gridSize + 1] == symbols[i * gridSize + 2])
+        {
+            return true;
+        }
+
+        // Check columns
+        if (symbols[i] != '\0' && symbols[i] == symbols[i + gridSize] && symbols[i + gridSize] == symbols[i + gridSize * 2])
+        {
+            return true;
+        }
+    }
+
+    // Check diagonals
+    if (symbols[0] != '\0' && symbols[0] == symbols[gridSize + 1] && symbols[gridSize + 1] == symbols[2 * gridSize + 2])
+    {
+        return true;
+    }
+    if (symbols[gridSize - 1] != '\0' && symbols[gridSize - 1] == symbols[2 * gridSize - 2] && symbols[2 * gridSize - 2] == symbols[3 * gridSize - 3])
+    {
+        return true;
+    }
+
+    return false; // No win condition found
+}
+
