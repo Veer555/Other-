@@ -1,86 +1,87 @@
+
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class TicTacToeManager : MonoBehaviour
+public class P_P : MonoBehaviour
 {
-    public GameObject buttonPrefab;
-    public Transform buttonParent;
-    public Text gameOverText;
+    public GameObject btn;
+    public Transform btnholder;
+    public Text wintxt, playertxt;
 
-    private Button[,] buttons;
-    private bool isPlayerX = true;
-    private bool isGameFinished = false;
+    private int gridnum = 3, matchnum = 3;
+    private List<GameObject> l = new List<GameObject>();
+    private bool win = false;
+    private play p;
 
     private void Start()
     {
-        InitializeBoard();
-    }
+        p = FindObjectOfType<play>();
+        gridnum = p.gridnum;
+        matchnum = p.matchnum;
 
-    private void InitializeBoard()
-    {
-        buttons = new Button[3, 3];
+        SetCellSize();
 
-        for (int row = 0; row < 3; row++)
+        for (int i = 0; i < gridnum * gridnum; i++)
         {
-            for (int col = 0; col < 3; col++)
-            {
-                GameObject buttonGO = Instantiate(buttonPrefab, buttonParent);
-                Button button = buttonGO.GetComponent<Button>();
-                int r = row;
-                int c = col;
-
-                button.onClick.AddListener(() => OnButtonClick(r, c));
-                buttons[row, col] = button;
-            }
+            GameObject g = Instantiate(btn, btnholder);
+            Button button = g.GetComponent<Button>();
+            Text buttonText = g.GetComponentInChildren<Text>();
+            buttonText.text = "";
+            button.onClick.AddListener(() => click(g));
+            l.Add(g);
         }
     }
 
-    private void OnButtonClick(int row, int col)
+    private void SetCellSize()
     {
-        if (isGameFinished || buttons[row, col].GetComponentInChildren<Text>().text != "")
-            return;
-
-        buttons[row, col].GetComponentInChildren<Text>().text = isPlayerX ? "X" : "O";
-        isPlayerX = !isPlayerX;
-
-        if (CheckForWin(row, col))
+        float cellSize = 91f;
+        switch (gridnum)
         {
-            gameOverText.text = isPlayerX ? "Player O wins!" : "Player X wins!";
-            isGameFinished = true;
+            case 4:
+                cellSize = 68f;
+                break;
+            case 5:
+                cellSize = 54f;
+                break;
+            case 6:
+                cellSize = 45f;
+                break;
+        }
+
+        btnholder.GetComponent<GridLayoutGroup>().cellSize = new Vector2(cellSize, cellSize);
+    }
+
+    public void click(GameObject g)
+    {
+        if (win) return;
+
+        Text buttonText = g.GetComponentInChildren<Text>();
+        if (buttonText.text == "")
+        {
+            buttonText.text = (l.Count % 2 == 0) ? "O" : "X";
+            g.GetComponent<Button>().interactable = false;
+            playertxt.text = (l.Count % 2 == 0) ? "Player B" : "Player A";
+            check();
         }
     }
 
-    private bool CheckForWin(int row, int col)
+    public void restart()
     {
-        // Check the current row
-        if (buttons[row, 0].GetComponentInChildren<Text>().text == buttons[row, 1].GetComponentInChildren<Text>().text &&
-            buttons[row, 1].GetComponentInChildren<Text>().text == buttons[row, 2].GetComponentInChildren<Text>().text)
-        {
-            return true;
-        }
+        SceneManager.LoadScene("play");
+    }
 
-        // Check the current column
-        if (buttons[0, col].GetComponentInChildren<Text>().text == buttons[1, col].GetComponentInChildren<Text>().text &&
-            buttons[1, col].GetComponentInChildren<Text>().text == buttons[2, col].GetComponentInChildren<Text>().text)
-        {
-            return true;
-        }
+    private void check()
+    {
+        // Implement your win condition checks here based on gridnum and matchnum
+    }
 
-        // Check the diagonals
-        if ((row == col || row + col == 2) &&
-            (buttons[0, 0].GetComponentInChildren<Text>().text == buttons[1, 1].GetComponentInChildren<Text>().text &&
-             buttons[1, 1].GetComponentInChildren<Text>().text == buttons[2, 2].GetComponentInChildren<Text>().text))
-        {
-            return true;
-        }
+    // Other win condition checking methods go here...
 
-        if ((row == col || row + col == 2) &&
-            (buttons[0, 2].GetComponentInChildren<Text>().text == buttons[1, 1].GetComponentInChildren<Text>().text &&
-             buttons[1, 1].GetComponentInChildren<Text>().text == buttons[2, 0].GetComponentInChildren<Text>().text))
-        {
-            return true;
-        }
-
-        return false;
+    private void Win(string winner)
+    {
+        wintxt.text = winner + " win";
+        win = true;
     }
 }
