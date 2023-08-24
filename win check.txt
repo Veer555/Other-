@@ -1,0 +1,88 @@
+// start Check() to WinO6x6()
+
+public void Check()
+{
+    for (int i = 0; i < gridnum; i++)
+    {
+        for (int j = 0; j < matchnum; j++)
+        {
+            if (CheckWin(i, j, "O"))
+            {
+                wintxt.text = "Player win";
+                win = true;
+                return;
+            }
+            else if (CheckWin(i, j, "X"))
+            {
+                wintxt.text = "Computer win";
+                win = true;
+                return;
+            }
+        }
+    }
+}
+
+bool CheckWin(int gridSize, int matchSize, string playerSymbol)
+{
+    int rows = gridSize + 3;
+    int cols = gridSize + 3;
+
+    // Check rows
+    for (int row = 0; row < rows; row++)
+    {
+        for (int col = 0; col <= cols - matchSize; col++)
+        {
+            bool win = true;
+            for (int k = 0; k < matchSize; k++)
+            {
+                if (l[row * cols + col + k].GetComponentInChildren<Text>().text != playerSymbol)
+                {
+                    win = false;
+                    break;
+                }
+            }
+            if (win)
+                return true;
+        }
+    }
+
+    // Check columns
+    for (int col = 0; col < cols; col++)
+    {
+        for (int row = 0; row <= rows - matchSize; row++)
+        {
+            bool win = true;
+            for (int k = 0; k < matchSize; k++)
+            {
+                if (l[(row + k) * cols + col].GetComponentInChildren<Text>().text != playerSymbol)
+                {
+                    win = false;
+                    break;
+                }
+            }
+            if (win)
+                return true;
+        }
+    }
+
+    // Check diagonals
+    for (int row = 0; row <= rows - matchSize; row++)
+    {
+        for (int col = 0; col <= cols - matchSize; col++)
+        {
+            bool win = true;
+            for (int k = 0; k < matchSize; k++)
+            {
+                if (l[(row + k) * cols + col + k].GetComponentInChildren<Text>().text != playerSymbol)
+                {
+                    win = false;
+                    break;
+                }
+            }
+            if (win)
+                return true;
+        }
+    }
+
+    return false;
+}
