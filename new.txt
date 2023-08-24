@@ -1,132 +1,122 @@
-using System.Collections;
-using System.Collections.Generic;
+// AI condition start grid() to aichek6x6()
+
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TicTacToeGame : MonoBehaviour
+public class TicTacToe : MonoBehaviour
 {
-    [SerializeField] private int boardSize = 3; // Size of the Tic Tac Toe board.
-    [SerializeField] private GameObject tilePrefab; // Reference to your tile prefab.
-    [SerializeField] private float tileSize = 1;
-    [SerializeField] private Text gameOverText;
+    public int gridNum = 3; // Change this to the desired grid size
+    public int matchNum = 3; // Change this to the desired match condition
 
-    private enum Player { None, X, O }
-    private Player[,] board;
-    private bool isPlayerX = true;
-    private bool isGameFinished = false;
+    private Button[] buttons;
 
     private void Start()
     {
-        InitializeBoard();
-        GenerateGrid();
+        buttons = GetComponentsInChildren<Button>();
+        grid();
     }
 
-    private void InitializeBoard()
+    private void grid()
     {
-        board = new Player[boardSize, boardSize];
-    }
+        int[,] winCombinations = GenerateWinCombinations();
 
-    private void GenerateGrid()
-    {
-        for (int row = 0; row < boardSize; row++)
+        foreach (int i in winCombinations)
         {
-            for (int col = 0; col < boardSize; col++)
+            if (CheckWinCondition(i, "X"))
             {
-                float posX = col * tileSize;
-                float posY = -row * tileSize;
+                return;
+            }
+        }
 
-                Vector2 tilePosition = new Vector2(posX, posY);
-                GameObject tile = Instantiate(tilePrefab, tilePosition, Quaternion.identity, transform);
-
-                // Attach a click event handler to the tile.
-                int r = row;
-                int c = col;
-                tile.GetComponent<Button>().onClick.AddListener(() => OnTileClick(r, c));
+        foreach (int i in winCombinations)
+        {
+            if (CheckWinCondition(i, "O"))
+            {
+                return;
             }
         }
     }
 
-    private void OnTileClick(int row, int col)
+    private int[,] GenerateWinCombinations()
     {
-        if (isGameFinished || board[row, col] != Player.None)
-            return;
+        int rows = gridNum;
+        int cols = gridNum;
+        int[,] combinations = new int[rows * cols, matchNum];
 
-        // Update the board and display "X" or "O" on the clicked tile.
-        board[row, col] = isPlayerX ? Player.X : Player.O;
-        SetTileText(row, col, isPlayerX ? "X" : "O");
-        isPlayerX = !isPlayerX;
+        // Rows
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j <= cols - matchNum; j++)
+            {
+                for (int k = 0; k < matchNum; k++)
+                {
+                    combinations[i * cols + j + k, k] = i * cols + j + k;
+                }
+            }
+        }
 
-        // Check for a win or a draw.
-        if (CheckForWin(row, col))
+        // Columns
+        for (int i = 0; i <= rows - matchNum; i++)
         {
-            gameOverText.text = isPlayerX ? "Player O wins!" : "Player X wins!";
-            isGameFinished = true;
+            for (int j = 0; j < cols; j++)
+            {
+                for (int k = 0; k < matchNum; k++)
+                {
+                    combinations[i * cols + j + k, k] = i * cols + j + k;
+                }
+            }
         }
-        else if (IsBoardFull())
+
+        // Diagonals (top-left to bottom-right)
+        for (int i = 0; i <= rows - matchNum; i++)
         {
-            gameOverText.text = "It's a draw!";
-            isGameFinished = true;
+            for (int j = 0; j <= cols - matchNum; j++)
+            {
+                for (int k = 0; k < matchNum; k++)
+                {
+                    combinations[i * cols + j + k, k] = (i + k) * cols + j + k;
+                }
+            }
         }
-        else if (!isPlayerX)
+
+        // Diagonals (top-right to bottom-left)
+        for (int i = 0; i <= rows - matchNum; i++)
         {
-            // AI player's turn (assuming AI plays randomly).
-            AIPlayRandomMove();
+            for (int j = matchNum - 1; j < cols; j++)
+            {
+                for (int k = 0; k < matchNum; k++)
+                {
+                    combinations[i * cols + j - k, k] = (i + k) * cols + j - k;
+                }
+            }
         }
+
+        return combinations;
     }
 
-    private void SetTileText(int row, int col, string text)
+    private bool CheckWinCondition(int[] combination, string player)
     {
-        // You need to implement a method to set the text of the tile at row, col.
-        // This can be done by accessing the Text component of the tile and setting its text.
-        // Example: boardTiles[row, col].GetComponentInChildren<Text>().text = text;
-    }
+        int count = 0;
+        int emptyCellIndex = -1;
 
-    private bool CheckForWin(int row, int col)
-    {
-        // Implement your win checking logic here.
-        // Check for a win along the current row, column, and diagonals.
-        // Return true if there's a win, false otherwise.
+        foreach (int index in combination)
+        {
+            if (buttons[index].GetComponentInChildren<Text>().text == player)
+            {
+                count++;
+            }
+            else if (buttons[index].GetComponentInChildren<Text>().text == "")
+            {
+                emptyCellIndex = index;
+            }
+        }
+
+        if (count == matchNum - 1 && emptyCellIndex != -1)
+        {
+            PlayerPrefs.SetInt("AI", emptyCellIndex);
+            return true;
+        }
+
         return false;
-    }
-
-    private bool IsBoardFull()
-    {
-        for (int row = 0; row < boardSize; row++)
-        {
-            for (int col = 0; col < boardSize; col++)
-            {
-                if (board[row, col] == Player.None)
-                {
-                    return false; // If there's an empty cell, the board is not full.
-                }
-            }
-        }
-        return true; // All cells are filled; it's a draw.
-    }
-
-    private void AIPlayRandomMove()
-    {
-        // Implement your AI logic here.
-        // This is a basic example where AI picks a random empty cell.
-        List<Vector2Int> emptyCells = new List<Vector2Int>();
-
-        for (int row = 0; row < boardSize; row++)
-        {
-            for (int col = 0; col < boardSize; col++)
-            {
-                if (board[row, col] == Player.None)
-                {
-                    emptyCells.Add(new Vector2Int(row, col));
-                }
-            }
-        }
-
-        if (emptyCells.Count > 0)
-        {
-            int randomIndex = Random.Range(0, emptyCells.Count);
-            int aiRow = emptyCells[randomIndex].x;
-            int aiCol = emptyCells[randomIndex].y;
-            OnTileClick(aiRow, aiCol); // Simulate the AI's click on the selected tile.
-        }
     }
 }
