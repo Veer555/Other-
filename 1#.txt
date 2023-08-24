@@ -1,3 +1,4 @@
+// complete p_p cs
 
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +8,7 @@ using UnityEngine.UI;
 public class P_P : MonoBehaviour
 {
     public GameObject btn;
-    public Transform btnholder;
+    public GameObject btnholder;
     public Text wintxt, playertxt;
 
     private int gridnum = 3, matchnum = 3;
@@ -15,7 +16,12 @@ public class P_P : MonoBehaviour
     private bool win = false;
     private play p;
 
-    private void Start()
+    public void restart()
+    {
+        SceneManager.LoadScene("play");
+    }
+    // Start is called before the first frame update
+    void Start()
     {
         p = FindObjectOfType<play>();
         gridnum = p.gridnum;
@@ -25,11 +31,11 @@ public class P_P : MonoBehaviour
 
         for (int i = 0; i < gridnum * gridnum; i++)
         {
-            GameObject g = Instantiate(btn, btnholder);
+            GameObject g = Instantiate(btn, btnholder.transform);
             Button button = g.GetComponent<Button>();
             Text buttonText = g.GetComponentInChildren<Text>();
             buttonText.text = "";
-            button.onClick.AddListener(() => click(g));
+            button.onClick.AddListener(() => Click(g));
             l.Add(g);
         }
     }
@@ -53,35 +59,159 @@ public class P_P : MonoBehaviour
         btnholder.GetComponent<GridLayoutGroup>().cellSize = new Vector2(cellSize, cellSize);
     }
 
-    public void click(GameObject g)
+    public void Click(GameObject g)
     {
-        if (win) return;
+        if (win) return; // If the game is already won, do nothing.
 
+        int filledCount = CountFilledButtons();
         Text buttonText = g.GetComponentInChildren<Text>();
-        if (buttonText.text == "")
+        Button button = g.GetComponent<Button>();
+
+        if (string.IsNullOrEmpty(buttonText.text))
         {
-            buttonText.text = (l.Count % 2 == 0) ? "O" : "X";
-            g.GetComponent<Button>().interactable = false;
-            playertxt.text = (l.Count % 2 == 0) ? "Player B" : "Player A";
+            buttonText.text = (filledCount % 2 == 0) ? "O" : "X";
+            playertxt.text = (filledCount % 2 == 0) ? "Player B" : "Player A";
+
+            button.interactable = false;
             check();
         }
     }
 
-    public void restart()
+    private int CountFilledButtons()
     {
-        SceneManager.LoadScene("play");
+        int count = 0;
+        foreach (GameObject buttonObject in l)
+        {
+            Text buttonText = buttonObject.GetComponentInChildren<Text>();
+            if (!string.IsNullOrEmpty(buttonText.text))
+            {
+                count++;
+            }
+        }
+        return count;
     }
 
-    private void check()
+    /*public void click(GameObject g)
     {
-        // Implement your win condition checks here based on gridnum and matchnum
+        int j = 0;
+        for (int i = 0; i < l.Count; i++)
+        {
+            if (l[i].GetComponentInChildren<Text>().text != "")
+            {
+                j++;
+            }
+        }
+        if (win == false)
+        {
+            if (j % 2 == 0)
+            {
+                g.GetComponentInChildren<Text>().text = "O";
+                g.GetComponent<Button>().interactable = false;
+                playertxt.text = "Player B";
+            }
+            else
+            {
+                g.GetComponentInChildren<Text>().text = "X";
+                g.GetComponent<Button>().interactable = false;
+                playertxt.text = "Player A";
+            }
+            check();
+        }
+    }*/
+
+    public void check()
+    {
+        for (int i = 0; i < gridnum; i++)
+        {
+            for (int j = 0; j < gridnum; j++)
+            {
+                if (CheckWin(i, j))
+                {
+                    if (l[i * gridnum + j].GetComponentInChildren<Text>().text == "O")
+                    {
+                        wintxt.text = "Player A wins";
+                    }
+                    else if (l[i * gridnum + j].GetComponentInChildren<Text>().text == "X")
+                    {
+                        wintxt.text = "Player B wins";
+                    }
+                    win = true;
+                    return;
+                }
+            }
+        }
     }
 
-    // Other win condition checking methods go here...
-
-    private void Win(string winner)
+    private bool CheckWin(int row, int col)
     {
-        wintxt.text = winner + " win";
-        win = true;
+        string symbol = l[row * gridnum + col].GetComponentInChildren<Text>().text;
+
+        if (string.IsNullOrEmpty(symbol))
+        {
+            return false;
+        }
+
+        // Check horizontally
+        for (int i = 0; i < matchnum; i++)
+        {
+            if (col + i >= gridnum || l[row * gridnum + col + i].GetComponentInChildren<Text>().text != symbol)
+            {
+                break;
+            }
+
+            if (i == matchnum - 1)
+            {
+                return true;
+            }
+        }
+
+        // Check vertically
+        for (int i = 0; i < matchnum; i++)
+        {
+            if (row + i >= gridnum || l[(row + i) * gridnum + col].GetComponentInChildren<Text>().text != symbol)
+            {
+                break;
+            }
+
+            if (i == matchnum - 1)
+            {
+                return true;
+            }
+        }
+
+        // Check diagonally (top-left to bottom-right)
+        if (row + matchnum <= gridnum && col + matchnum <= gridnum)
+        {
+            for (int i = 0; i < matchnum; i++)
+            {
+                if (l[(row + i) * gridnum + col + i].GetComponentInChildren<Text>().text != symbol)
+                {
+                    break;
+                }
+
+                if (i == matchnum - 1)
+                {
+                    return true;
+                }
+            }
+        }
+
+        // Check diagonally (top-right to bottom-left)
+        if (row + matchnum <= gridnum && col - matchnum + 1 >= 0)
+        {
+            for (int i = 0; i < matchnum; i++)
+            {
+                if (l[(row + i) * gridnum + col - i].GetComponentInChildren<Text>().text != symbol)
+                {
+                    break;
+                }
+
+                if (i == matchnum - 1)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
-}
