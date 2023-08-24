@@ -1,482 +1,195 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using Random = UnityEngine.Random;
+// AI Win conditions
 
-public class TicTacToe : MonoBehaviour
+void checkpc(GameObject g, int temp)
 {
-    public Button[] buttons;
-    private string playerSide;
-
-    private int moveCount;
-    public Text gameOverText/* restartButtonText*/;
-    public GameObject GameOverPanel ;
-
-    private void Awake ()
+    int kcount = 0;
+    foreach (var button in l)
     {
-        RestartGame();
-    }
-    
-    public void SetSpaceValue ( int index )
-    {
-        buttons[index].GetComponentInChildren<Text>().text = playerSide;
-        buttons[index].interactable = false;
-        CheckWinConditions();
+        if (button.GetComponentInChildren<Text>().text != "")
+        {
+            kcount++;
+        }
     }
 
-    private void CheckWinConditions ()
+    if (!win)
     {
-        moveCount++;
-
-        // Check rows
-        if ( buttons[0].GetComponentInChildren<Text>().text == playerSide && buttons[1].GetComponentInChildren<Text>().text == playerSide && buttons[2].GetComponentInChildren<Text>().text == playerSide )
+        if (kcount % 2 == 0)
         {
-            EndGame();
-        }
-        else if ( buttons[3].GetComponentInChildren<Text>().text == playerSide && buttons[4].GetComponentInChildren<Text>().text == playerSide && buttons[5].GetComponentInChildren<Text>().text == playerSide )
-        {
-            EndGame();
-        }
-        else if ( buttons[6].GetComponentInChildren<Text>().text == playerSide && buttons[7].GetComponentInChildren<Text>().text == playerSide && buttons[8].GetComponentInChildren<Text>().text == playerSide )
-        {
-            EndGame();
+            g.GetComponentInChildren<Text>().text = "O";
+            g.GetComponent<Button>().interactable = false;
+            playertxt.text = "Computer Tern";
+            grid();
+            check();
         }
 
-        // Check columns
-        else if ( buttons[0].GetComponentInChildren<Text>().text == playerSide && buttons[3].GetComponentInChildren<Text>().text == playerSide && buttons[6].GetComponentInChildren<Text>().text == playerSide )
+        kcount = 0;
+        foreach (var button in l)
         {
-            EndGame();
-        }
-        else if ( buttons[1].GetComponentInChildren<Text>().text == playerSide && buttons[4].GetComponentInChildren<Text>().text == playerSide && buttons[7].GetComponentInChildren<Text>().text == playerSide )
-        {
-            EndGame();
-        }
-        else if ( buttons[2].GetComponentInChildren<Text>().text == playerSide && buttons[5].GetComponentInChildren<Text>().text == playerSide && buttons[8].GetComponentInChildren<Text>().text == playerSide )
-        {
-            EndGame();
+            if (button.GetComponentInChildren<Text>().text != "")
+            {
+                kcount++;
+            }
         }
 
-        // Check diagonals
-        else if ( buttons[0].GetComponentInChildren<Text>().text == playerSide && buttons[4].GetComponentInChildren<Text>().text == playerSide && buttons[8].GetComponentInChildren<Text>().text == playerSide )
+        if (kcount % 2 == 1)
         {
-            EndGame();
-        }
-        else if ( buttons[2].GetComponentInChildren<Text>().text == playerSide && buttons[4].GetComponentInChildren<Text>().text == playerSide && buttons[6].GetComponentInChildren<Text>().text == playerSide )
-        {
-            EndGame();
-        }
-        else if ( moveCount >=9 )
-        {
-            gameOverText.text = "DRAW!";
-            GameOverPanel.SetActive(true);
-            DisableAllButtons();
-        }
-        else
-        {
-            ChangeSides();
+            if (!win)
+            {
+                int x = PlayerPrefs.GetInt("AI");
+
+                if (kcount < l.Count)
+                {
+                    if (kcount == 1)
+                    {
+                        if (gridnum == 3)
+                        {
+                            if (l[l.Count / 2].GetComponentInChildren<Text>().text == "")
+                            {
+                                StartCoroutine(delay(l.Count / 2));
+                            }
+                            else
+                            {
+                                if (temp < l.Count - 1)
+                                {
+                                    List<int> emptyIndices = new List<int>();
+
+                                    for (int i = 0; i < l.Count; i++)
+                                    {
+                                        if (l[i].GetComponentInChildren<Text>().text == "")
+                                        {
+                                            emptyIndices.Add(i);
+                                        }
+                                    }
+
+                                    if (emptyIndices.Count > 0)
+                                    {
+                                        int r = Random.Range(0, emptyIndices.Count);
+                                        StartCoroutine(delay(emptyIndices[r]));
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            int r = Random.Range(0, l.Count);
+                            while (l[r].GetComponentInChildren<Text>().text != "")
+                            {
+                                r = Random.Range(0, l.Count);
+                            }
+                            StartCoroutine(delay(r));
+                            playertxt.text = "Player Tern";
+                        }
+                    }
+                    else
+                    {
+                        if (matchnum == 3)
+                        {
+                            grid();
+                            x = PlayerPrefs.GetInt("AI");
+
+                            if (x != 100)
+                            {
+                                if (l[x].GetComponentInChildren<Text>().text == "")
+                                {
+                                    StartCoroutine(delay(x));
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                for (int v = 0; v < l.Count - 2; v++)
+                                {
+                                    if (l[v].GetComponentInChildren<Text>().text == "X")
+                                    {
+                                        if (l[v + 1].GetComponentInChildren<Text>().text == "")
+                                        {
+                                            StartCoroutine(delay(v + 1));
+                                            return;
+                                        }
+                                        else if (v > 0)
+                                        {
+                                            if (l[v - 1].GetComponentInChildren<Text>().text == "")
+                                            {
+                                                StartCoroutine(delay(v - 1));
+                                                return;
+                                            }
+                                        }
+                                        else if (v >= gridnum)
+                                        {
+                                            if (l[v - gridnum].GetComponentInChildren<Text>().text == "")
+                                            {
+                                                StartCoroutine(delay(v - gridnum));
+                                                return;
+                                            }
+                                        }
+                                        else if (v < l.Count - gridnum)
+                                        {
+                                            if (l[v + gridnum].GetComponentInChildren<Text>().text == "")
+                                            {
+                                                StartCoroutine(delay(v + gridnum));
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        grid();
+                        x = PlayerPrefs.GetInt("AI");
+
+                        if (x != 100)
+                        {
+                            if (l[x].GetComponentInChildren<Text>().text != "")
+                            {
+                                List<int> emptyIndices = new List<int>();
+
+                                for (int i = 0; i < l.Count; i++)
+                                {
+                                    if (l[i].GetComponentInChildren<Text>().text == "")
+                                    {
+                                        emptyIndices.Add(i);
+                                    }
+                                }
+
+                                if (emptyIndices.Count > 0)
+                                {
+                                    int r = Random.Range(0, emptyIndices.Count);
+                                    StartCoroutine(delay(emptyIndices[r]));
+                                    playertxt.text = "Player Tern";
+                                }
+                            }
+                            else
+                            {
+                                StartCoroutine(delay(x));
+                            }
+                        }
+                        else
+                        {
+                            List<int> emptyIndices = new List<int>();
+
+                            for (int i = 0; i < l.Count; i++)
+                            {
+                                if (l[i].GetComponentInChildren<Text>().text == "")
+                                {
+                                    emptyIndices.Add(i);
+                                }
+                            }
+
+                            if (emptyIndices.Count > 0)
+                            {
+                                int r = Random.Range(0, emptyIndices.Count);
+                                StartCoroutine(delay(emptyIndices[r]));
+                                playertxt.text = "Player Tern";
+                            }
+                        }
+
+                        playertxt.text = "Player Tern";
+                    }
+                }
+
+                check();
+            }
         }
     }
-        
-    private void ChangeSides ()
-    {
-        playerSide = ( playerSide == "X" ) ? "O" : "X";
-        if ( playerSide == "O" )
-        {
-            ComputerAI();
-        }
-    }
-    int moveChange = 0;
-    public void ComputerAI ()
-    {
-        Button[] buttons = FindObjectsOfType<Button>();
-        List<Button> emptybuttons = new List<Button>();
-        foreach ( Button button in buttons )
-        {
-            if ( button.GetComponentInChildren<Text>().text == "")
-            {
-                emptybuttons.Add(button);
-                moveChange++;
-            }
-        }
-
-        int changeMove = 0;
-        changeMove = moveChange;
-
-        if ( emptybuttons.Count > 0 )
-        {
-            O_WiningPisibility();
-        }
-        
-        if ( emptybuttons.Count > 0 && changeMove == moveChange)
-        {
-            int randomIndex = Random.Range(0, emptybuttons.Count);
-            Button randomButton = emptybuttons[randomIndex];
-            randomButton.interactable = false;
-            randomButton.GetComponentInChildren<Text>().text = playerSide;
-        }
-        CheckWinConditions();
-    }
-
-    bool isOn = true;
-    private void WiningPosibility ()
-    {
-        Debug.Log("winingposibiulity");
-        #region Rows
-            if ( buttons[0].GetComponentInChildren<Text>().text == "O" && buttons[1].GetComponentInChildren<Text>().text == "O" && buttons[2].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[2].GetComponentInChildren<Text>().text = "O";
-                buttons[2].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "X" && buttons[1].GetComponentInChildren<Text>().text == "X" && buttons[2].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[2].GetComponentInChildren<Text>().text = "O";
-                buttons[2].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "" && buttons[1].GetComponentInChildren<Text>().text == "X" && buttons[2].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[0].GetComponentInChildren<Text>().text = "O";
-                buttons[0].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "" && buttons[1].GetComponentInChildren<Text>().text == "O" && buttons[2].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[0].GetComponentInChildren<Text>().text = "O";
-                buttons[0].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "O" && buttons[1].GetComponentInChildren<Text>().text == "" && buttons[2].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[1].GetComponentInChildren<Text>().text = "O";
-                buttons[1].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "X" && buttons[1].GetComponentInChildren<Text>().text == "" && buttons[2].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[1].GetComponentInChildren<Text>().text = "O";
-                buttons[1].interactable = false;
-                moveChange--;
-            }
-
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[5].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[5].GetComponentInChildren<Text>().text = "O";
-                buttons[5].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "X" && buttons[4].GetComponentInChildren<Text>().text == "X" && buttons[5].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[5].GetComponentInChildren<Text>().text = "O";
-                buttons[5].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[5].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[3].GetComponentInChildren<Text>().text = "O";
-                buttons[3].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "X" && buttons[5].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[3].GetComponentInChildren<Text>().text = "O";
-                buttons[3].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[5].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "X" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[5].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-            }
-
-            else if ( buttons[6].GetComponentInChildren<Text>().text == "O" && buttons[7].GetComponentInChildren<Text>().text == "O" && buttons[8].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[8].GetComponentInChildren<Text>().text = "O";
-                buttons[8].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[6].GetComponentInChildren<Text>().text == "X" && buttons[7].GetComponentInChildren<Text>().text == "X" && buttons[8].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[8].GetComponentInChildren<Text>().text = "O";
-                buttons[8].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[6].GetComponentInChildren<Text>().text == "" && buttons[7].GetComponentInChildren<Text>().text == "O" && buttons[8].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[6].GetComponentInChildren<Text>().text = "O";
-                buttons[6].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[6].GetComponentInChildren<Text>().text == "" && buttons[7].GetComponentInChildren<Text>().text == "X" && buttons[8].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[6].GetComponentInChildren<Text>().text = "O";
-                buttons[6].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[6].GetComponentInChildren<Text>().text == "O" && buttons[7].GetComponentInChildren<Text>().text == "" && buttons[8].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[7].GetComponentInChildren<Text>().text = "O";
-                buttons[7].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[6].GetComponentInChildren<Text>().text == "X" && buttons[7].GetComponentInChildren<Text>().text == "" && buttons[8].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[7].GetComponentInChildren<Text>().text = "O";
-                buttons[7].interactable = false;
-                moveChange--;
-            }
-            #endregion
-
-        #region Columns
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "O" && buttons[3].GetComponentInChildren<Text>().text == "O" && buttons[6].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[6].GetComponentInChildren<Text>().text = "O";
-                buttons[6].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "X" && buttons[3].GetComponentInChildren<Text>().text == "X" && buttons[6].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[6].GetComponentInChildren<Text>().text = "O";
-                buttons[6].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "" && buttons[3].GetComponentInChildren<Text>().text == "O" && buttons[6].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[0].GetComponentInChildren<Text>().text = "O";
-                buttons[0].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "" && buttons[3].GetComponentInChildren<Text>().text == "X" && buttons[6].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[0].GetComponentInChildren<Text>().text = "O";
-                buttons[0].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "O" && buttons[3].GetComponentInChildren<Text>().text == "" && buttons[6].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[3].GetComponentInChildren<Text>().text = "O";
-                buttons[3].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "X" && buttons[3].GetComponentInChildren<Text>().text == "" && buttons[6].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[3].GetComponentInChildren<Text>().text = "O";
-                buttons[3].interactable = false;
-                moveChange--;
-            }
-
-            else if ( buttons[1].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[7].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[7].GetComponentInChildren<Text>().text = "O";
-                buttons[7].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[1].GetComponentInChildren<Text>().text == "X" && buttons[4].GetComponentInChildren<Text>().text == "X" && buttons[7].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[7].GetComponentInChildren<Text>().text = "O";
-                buttons[7].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[1].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[7].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[1].GetComponentInChildren<Text>().text = "O";
-                buttons[1].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[1].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "X" && buttons[7].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[1].GetComponentInChildren<Text>().text = "O";
-                buttons[1].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[1].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[7].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[1].GetComponentInChildren<Text>().text == "X" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[7].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-            }
-
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "O" && buttons[5].GetComponentInChildren<Text>().text == "O" && buttons[8].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[8].GetComponentInChildren<Text>().text = "O";
-                buttons[8].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "X" && buttons[5].GetComponentInChildren<Text>().text == "X" && buttons[8].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[8].GetComponentInChildren<Text>().text = "O";
-                buttons[8].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "" && buttons[5].GetComponentInChildren<Text>().text == "O" && buttons[8].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[2].GetComponentInChildren<Text>().text = "O";
-                buttons[2].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "" && buttons[5].GetComponentInChildren<Text>().text == "X" && buttons[8].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[2].GetComponentInChildren<Text>().text = "O";
-                buttons[2].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "O" && buttons[5].GetComponentInChildren<Text>().text == "" && buttons[8].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[5].GetComponentInChildren<Text>().text = "O";
-                buttons[5].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "X" && buttons[5].GetComponentInChildren<Text>().text == "" && buttons[8].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[5].GetComponentInChildren<Text>().text = "O";
-                buttons[5].interactable = false;
-                moveChange--;
-            }
-            #endregion
-
-        #region Diagonals
-            if ( buttons[0].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[8].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[8].GetComponentInChildren<Text>().text = "O";
-                buttons[8].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "X" && buttons[4].GetComponentInChildren<Text>().text == "X" && buttons[8].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[8].GetComponentInChildren<Text>().text = "O";
-                buttons[8].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[8].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[0].GetComponentInChildren<Text>().text = "O";
-                buttons[0].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "X" && buttons[8].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[0].GetComponentInChildren<Text>().text = "O";
-                buttons[0].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[8].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "X" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[8].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-            }
-
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[6].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[6].GetComponentInChildren<Text>().text = "O";
-                buttons[6].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "X" && buttons[4].GetComponentInChildren<Text>().text == "X" && buttons[6].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[6].GetComponentInChildren<Text>().text = "O";
-                buttons[6].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[6].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[2].GetComponentInChildren<Text>().text = "O";
-                buttons[2].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "X" && buttons[6].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[2].GetComponentInChildren<Text>().text = "O";
-                buttons[2].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[6].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-            }
-            else if ( buttons[2].GetComponentInChildren<Text>().text == "X" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[6].GetComponentInChildren<Text>().text == "X" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-            }
-            #endregion        
-    }
-
-    private void O_WiningPisibility ()
-    {
-        Debug.Log("O_WiningPisibility");
-        #region Rows
-            if ( buttons[0].GetComponentInChildren<Text>().text == "O" && buttons[1].GetComponentInChildren<Text>().text == "O" && buttons[2].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[2].GetComponentInChildren<Text>().text = "O";
-                buttons[2].interactable = false;
-                moveChange--;
-                isOn = false;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "" && buttons[1].GetComponentInChildren<Text>().text == "O" && buttons[2].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[0].GetComponentInChildren<Text>().text = "O";
-                buttons[0].interactable = false;
-                moveChange--;
-                isOn = false;
-            }
-            else if ( buttons[0].GetComponentInChildren<Text>().text == "O" && buttons[1].GetComponentInChildren<Text>().text == "" && buttons[2].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[1].GetComponentInChildren<Text>().text = "O";
-                buttons[1].interactable = false;
-                moveChange--;
-                isOn = false;
-            }
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[5].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[5].GetComponentInChildren<Text>().text = "O";
-                buttons[5].interactable = false;
-                moveChange--;
-                isOn = false;
-            }
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "" && buttons[4].GetComponentInChildren<Text>().text == "O" && buttons[5].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[3].GetComponentInChildren<Text>().text = "O";
-                buttons[3].interactable = false;
-                moveChange--;
-                isOn = false;
-            }
-            else if ( buttons[3].GetComponentInChildren<Text>().text == "O" && buttons[4].GetComponentInChildren<Text>().text == "" && buttons[5].GetComponentInChildren<Text>().text == "O" )
-            {
-                buttons[4].GetComponentInChildren<Text>().text = "O";
-                buttons[4].interactable = false;
-                moveChange--;
-                isOn = false;
-            }
-            else if ( buttons[6].GetComponentInChildren<Text>().text == "O" && buttons[7].GetComponentInChildren<Text>().text == "O" && buttons[8].GetComponentInChildren<Text>().text == "" )
-            {
-                buttons[8].GetComponentInChildren<Text>().text = "O";
-                buttons[8].interactable = false;
-                moveChange--;
-                isOn = false;
-            }
-            else if ( buttons[
+}
