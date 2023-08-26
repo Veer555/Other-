@@ -1,88 +1,1260 @@
-// start Check() to WinO6x6()
+new running
 
-public void Check()
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Analytics;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+public class Oregnal : MonoBehaviour
 {
-    for (int i = 0; i < gridnum; i++)
+    int gridnum = 3, matchnum = 3, r;
+    public GameObject btn, btnholder;
+    List<GameObject> l = new List<GameObject>();
+    List<int> k = new List<int>();
+    public Text wintxt, playertxt;
+    bool win = false;
+    play p;
+    // Start is called before the first frame update
+    public void restart()
     {
-        for (int j = 0; j < matchnum; j++)
+        SceneManager.LoadScene("AIPlay");
+    }
+    public void home()
+    {
+        SceneManager.LoadScene("Home_Main");
+    }
+    void Start()
+    {
+        k.Add(100);
+        p = FindObjectOfType<play>();
+        PlayerPrefs.SetInt("AI", 100);
+        gridnum = p.gridnum;
+        matchnum = p.matchnum;
+
+        for (int i = 0; i < (gridnum * gridnum); i++)
         {
-            if (CheckWin(i, j, "O"))
+            int temp = i;
+            GameObject g = Instantiate(btn, btnholder.transform);
+            g.GetComponent<Button>().onClick.AddListener(() => checkpc(g, temp));
+            l.Add(g);
+        }
+        if (gridnum == 3)
+        {
+            btnholder.GetComponent<GridLayoutGroup>().cellSize = new Vector2(91, 91);
+        }
+        else if (gridnum == 4)
+        {
+            btnholder.GetComponent<GridLayoutGroup>().cellSize = new Vector2(68, 68);
+        }
+        else if (gridnum == 5)
+        {
+            btnholder.GetComponent<GridLayoutGroup>().cellSize = new Vector2(54, 54);
+        }
+        else if (gridnum == 6)
+        {
+            btnholder.GetComponent<GridLayoutGroup>().cellSize = new Vector2(45, 45);
+        }
+    }
+    IEnumerator delay(int x)
+    {
+        yield return new WaitForSeconds(0.5f);
+        l[x].GetComponentInChildren<Text>().text = "X";
+        l[x].GetComponent<Button>().interactable = false;
+        check();
+    }
+
+    void checkpc(GameObject g, int temp)
+    {
+        int kcount = 0;
+        for (int i = 0; i < l.Count; i++)
+        {
+            if (l[i].GetComponentInChildren<Text>().text != "")
             {
-                wintxt.text = "Player win";
-                win = true;
+                kcount++;
+            }
+        }
+        if (win == false)
+        {
+            if (kcount % 2 == 0)
+            {
+                g.GetComponentInChildren<Text>().text = "O";
+                g.GetComponent<Button>().interactable = false;
+                playertxt.text = "Computer Tern";
+                grid();
+                //InitializeGrid();
+                check();
+            }
+            kcount = 0;
+            for (int i = 0; i < l.Count; i++)
+            {
+                if (l[i].GetComponentInChildren<Text>().text != "")
+                {
+                    kcount++;
+                }
+            }
+            if (kcount % 2 == 1)
+            {
+
+                if (win == false)
+                {
+                    int x = PlayerPrefs.GetInt("AI");
+                    if (kcount < l.Count)
+                    {
+                        if (kcount == 1)
+                        {
+                            if (gridnum == 3)
+                            {
+                                if (l[l.Count / 2].GetComponentInChildren<Text>().text == "")
+                                {
+                                    StartCoroutine(delay(l.Count / 2));
+                                }
+                                else
+                                {
+                                    if (temp < l.Count - 1)
+                                    {
+                                        int r = Random.Range(0, 3);
+                                        switch (r)
+                                        {
+                                            case 0:
+                                                if (l[0].GetComponentInChildren<Text>().text == "")
+                                                {
+                                                    StartCoroutine(delay(0));
+                                                }
+                                                break;
+                                            case 1:
+                                                if (l[gridnum - 1].GetComponentInChildren<Text>().text == "")
+                                                {
+                                                    StartCoroutine(delay((gridnum - 1)));
+                                                }
+                                                break;
+                                            case 2:
+                                                if (l[l.Count - 1].GetComponentInChildren<Text>().text == "")
+                                                {
+                                                    StartCoroutine(delay((l.Count - 1)));
+                                                }
+                                                break;
+                                            case 3:
+                                                if (l[(l.Count - gridnum) - 1].GetComponentInChildren<Text>().text == "")
+                                                {
+                                                    StartCoroutine(delay((l.Count - gridnum) - 1));
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                r = Random.Range(0, l.Count - 1);
+                                while (l[r].GetComponentInChildren<Text>().text != "")
+                                {
+                                    r = Random.Range(0, l.Count - 1);
+                                }
+                                StartCoroutine(delay(r));
+                                playertxt.text = "Player Tern";
+                            }
+                        }
+                        else
+                        {
+                            if (matchnum == 3)
+                            {
+                                grid();
+                                //InitializeGrid();
+                                x = PlayerPrefs.GetInt("AI");
+                                if (x != 100)
+                                {
+                                    if (l[x].GetComponentInChildren<Text>().text == "")
+                                    {
+                                        StartCoroutine(delay(x));
+                                        print("Hello");
+                                        return;
+                                    }
+                                }
+                                else
+                                {
+                                    for (int v = 0; v < l.Count - 2; v++)
+                                    {
+                                        if (l[v].GetComponentInChildren<Text>().text == "X")
+                                        {
+                                            if (l[v + 1].GetComponentInChildren<Text>().text == "")
+                                            {
+                                                StartCoroutine(delay(v + 1));
+                                                return;
+                                            }
+                                            else if (v > 0)
+                                            {
+                                                if (l[v - 1].GetComponentInChildren<Text>().text == "")
+                                                {
+                                                    StartCoroutine(delay(v - 1));
+                                                    return;
+                                                }
+                                            }
+
+                                            else if (v >= gridnum)
+                                            {
+                                                if (l[v - gridnum].GetComponentInChildren<Text>().text == "")
+                                                {
+                                                    StartCoroutine(delay(v - gridnum)); return;
+                                                }
+                                            }
+                                            else if (v < l.Count - gridnum)
+                                            {
+                                                if (l[v + gridnum].GetComponentInChildren<Text>().text == "")
+                                                {
+                                                    StartCoroutine(delay(v + gridnum)); return;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            grid();
+                            //InitializeGrid();
+                            x = PlayerPrefs.GetInt("AI");
+                            if (x != 100)
+                            {
+                                if (l[x].GetComponentInChildren<Text>().text != "")
+                                {
+                                    r = Random.Range(0, l.Count - 1);
+                                    while (l[r].GetComponentInChildren<Text>().text != "")
+                                    {
+                                        r = Random.Range(0, l.Count - 1);
+                                    }
+                                    StartCoroutine(delay(r));
+                                    playertxt.text = "Player Tern";
+                                }
+                                else
+                                {
+                                    print("Hello");
+                                    StartCoroutine(delay(x));
+                                }
+                            }
+                            else
+                            {
+                                r = Random.Range(0, l.Count - 1);
+                                while (l[r].GetComponentInChildren<Text>().text != "")
+                                {
+                                    r = Random.Range(0, l.Count - 1);
+                                }
+                                StartCoroutine(delay(r));
+                                playertxt.text = "Player Tern";
+                            }
+                            playertxt.text = "Player Tern";
+                        }
+                    }
+                    check();
+                }
+            }
+        }
+    }
+
+
+    #region Check
+    public void check()
+    {
+        if (gridnum == 3)
+        {
+            check3x3();
+        }
+        else if (gridnum == 4)
+        {
+            if (matchnum == 3)
+            {
+                check4x3();
+
+            }
+            else if (matchnum == 4)
+            {
+                check4x4();
+            }
+        }
+        else if (gridnum == 5)
+        {
+            if (matchnum == 5)
+            {
+                check5x5();
+            }
+            else if (matchnum == 4)
+            {
+                check5x4();
+            }
+            else if (matchnum == 3)
+            {
+                check5x3();
+            }
+        }
+        else if (gridnum == 6)
+        {
+            if (matchnum == 6)
+            {
+                check6x6();
+            }
+            else if (matchnum == 5)
+            {
+                check6x5();
+            }
+            else if (matchnum == 4)
+            {
+                check6x4();
+            }
+            else if (matchnum == 3)
+            {
+                check6x3();
+            }
+        }
+    }
+
+    void check3x3()
+    {
+        int[] cells = { 0, 1, 2 };
+        int[] indexes = {
+        0, 1, 2,
+        3, 4, 5,
+        6, 7, 8,
+        0, 4, 8,
+        2, 4, 6,
+        0, 3, 6,
+        1, 4, 7,
+        2, 5, 8
+    };
+
+        CheckWin(cells, indexes);
+    }
+
+    void check4x4()
+    {
+        int[] cells = { 0, 1, 2, 3 };
+        int[] indexes = {
+        0, 1, 2, 3,
+        4, 5, 6, 7,
+        8, 9, 10, 11,
+        12, 13, 14, 15,
+        0, 4, 8, 12,
+        1, 5, 9, 13,
+        2, 6, 10, 14,
+        3, 7, 11, 15,
+        0, 5, 10, 15,
+        3, 6, 9, 12
+    };
+
+        CheckWin(cells, indexes);
+    }
+    void check4x3()
+    {
+        int[] cells = { 0, 1, 2 };
+        int[] indexes = {
+        0, 1, 2,
+        1, 2, 3,
+        4, 5, 6,
+        5, 6, 7,
+        8, 9, 10,
+        9, 10, 11,
+        12, 13, 14,
+        13, 14, 15,
+        0, 4, 8,
+        4, 8, 12,
+        1, 5, 9,
+        5, 9, 13,
+        2, 6, 10,
+        6, 10, 14,
+        3, 7, 11,
+        7, 11, 15,
+        1, 6, 11,
+        0, 5, 10,
+        5, 10, 15,
+        4, 9, 14,
+        2, 5, 8,
+        3, 6, 9,
+        6, 9, 12,
+        7, 10, 13
+    };
+
+        CheckWin(cells, indexes);
+    }
+
+    void check5x5()
+    {
+        int[] cells = { 0, 1, 2, 3, 4 };
+        int[] indexes = {
+        0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9,
+        10, 11, 12, 13, 14,
+        15, 16, 17, 18, 19,
+        20, 21, 22, 23, 24,
+        0, 5, 10, 15, 20,
+        1, 6, 11, 16, 21,
+        2, 7, 12, 17, 22,
+        3, 8, 13, 18, 23,
+        4, 9, 14, 19, 24,
+        0, 6, 12, 18, 24,
+        20, 16, 12, 8, 4
+    };
+
+        CheckWin(cells, indexes);
+    }
+    void check5x4()
+    {
+        int[] cells = { 0, 1, 2, 3};
+        int[] indexes = {
+        0, 1, 2, 3,
+        1, 2, 3, 4,
+        5, 6, 7, 8,
+        6, 7, 8, 9,
+        10, 11, 12, 13,
+        11, 12, 13, 14,
+        15, 16, 17, 18,
+        16, 17, 18, 19,
+        20, 21, 22, 23,
+        21, 22, 23, 24,
+        0, 5, 10, 15,
+        1, 6, 11, 16,
+        2, 7, 12, 17,
+        3, 8, 13, 18,
+        4, 9, 14, 19,
+        5, 10, 15, 20,
+        6, 11, 16, 21,
+        7, 12, 17, 22,
+        8, 13, 18, 23,
+        9, 14, 19, 24,
+        1, 7, 13, 19,
+        0, 6, 12, 18,
+        6, 12, 18, 24,
+        5, 11, 17, 23,
+        3, 7, 11, 15,
+        4, 8, 12, 16,
+        8, 12, 16, 20,
+        9, 13, 17, 21
+    };
+
+        CheckWin(cells, indexes);
+    }
+    void check5x3()
+    {
+        int[] cells = { 0, 1, 2 };
+        int[] indexes = {
+        0, 1, 2,
+        1, 2, 3,
+        2, 3, 4,
+        5, 6, 7,
+        6, 7, 8,
+        7, 8, 9,
+        10, 11, 12,
+        11, 12, 13,
+        12, 13, 14,
+        15, 16, 17,
+        16, 17, 18,
+        17, 18, 19,
+        20, 21, 22,
+        21, 22, 23,
+        22, 23, 24,
+        0, 5, 10,
+        1, 6, 11,
+        2, 7, 12,
+        3, 8, 13,
+        4, 9, 14,
+        5, 10, 15,
+        6, 11, 16,
+        7, 12, 17,
+        8, 13, 18,
+        9, 14, 19,
+        10, 15, 20,
+        11, 16, 21,
+        12, 17, 22,
+        13, 18, 23,
+        14, 19, 24,
+        2, 8, 14,
+        1, 7, 13,
+        7, 13, 19,
+        0, 6, 12,
+        6, 12, 18,
+        12, 18, 24,
+        5, 11, 17,
+        11, 17, 23,
+        10, 16, 22,
+        2, 6, 10,
+        3, 7, 11,
+        7, 11, 15,
+        4, 8, 12,
+        8, 12, 16,
+        12, 16, 20,
+        9, 13, 17,
+        13, 17, 21,
+        14, 18, 22
+    };
+
+        CheckWin(cells, indexes);
+    }
+
+    void check6x6()
+    {
+        int[] cells = { 0, 1, 2, 3, 4, 5 };
+        int[] indexes = {
+        0, 1, 2, 3, 4, 5,
+        6, 7, 8, 9, 10, 11,
+        12, 13, 14, 15, 16, 17,
+        18, 19, 20, 21, 22, 23,
+        24, 25, 26, 27, 28, 29,
+        30, 31, 32, 33, 34, 35,
+        0, 6, 12, 18, 24, 30,
+        1, 7, 13, 19, 25, 31,
+        2, 8, 14, 20, 26, 32,
+        3, 9, 15, 21, 27, 33,
+        4, 10, 16, 22, 28, 34,
+        5, 11, 17, 23, 29, 35,
+        0, 7, 14, 21, 28, 35,
+        5, 10, 15, 20, 25, 30
+    };
+
+        CheckWin(cells, indexes);
+    }
+    void check6x5()
+    {
+        int[] cells = { 0, 1, 2, 3, 4};
+        int[] indexes = {
+            0, 1, 2, 3, 4,
+            1, 2, 3, 4, 5,
+            6, 7, 8, 9, 10,
+            7, 8, 9, 10, 11,
+            12, 13, 14, 15, 16,
+            13, 14, 15, 16, 17,
+            18, 19, 20, 21, 22,
+            19, 20, 21, 22, 23,
+            24, 25, 26, 27, 28,
+            25, 26, 27, 28, 29,
+            30, 31, 32, 33, 34,
+            31, 32, 33, 34, 35,
+            0, 6, 12, 18, 24,
+            1, 7, 13, 19, 25,
+            2, 8, 14, 20, 26,
+            3, 9, 15, 21, 27,
+            4, 10, 16, 22, 28,
+            5, 11, 17, 23, 29,
+            6, 12, 18, 24, 30,
+            7, 13, 19, 25, 31,
+            8, 14, 20, 26, 32,
+            9, 15, 21, 27, 33,
+            10, 16, 22, 28, 34,
+            11, 17, 23, 29, 35,
+            1, 8, 15, 22, 29,
+            0, 7, 14, 21, 28,
+            7, 14, 21, 28, 35,
+            6, 13, 20, 27, 34,
+            4, 9, 14, 19, 24,
+            5, 10, 15, 20, 25,
+            10, 15, 20, 25, 30,
+            11, 16, 21, 26, 31
+        };
+        CheckWin(cells, indexes);
+    }
+    void check6x4()
+    {
+        int[] cells = { 0, 1, 2, 3};
+        int[] indexes = {
+            0, 1, 2, 3,
+            1, 2, 3, 4,
+            2, 3, 4, 5,
+            6, 7, 8, 9,
+            7, 8, 9, 10,
+            8, 9, 10, 11,
+            12, 13, 14, 15,
+            13, 14, 15, 16,
+            14, 15, 16, 17,
+            18, 19, 20, 21,
+            19, 20, 21, 22,
+            20, 21, 22, 23,
+            24, 25, 26, 27,
+            25, 26, 27, 28,
+            26, 27, 28, 29,
+            30, 31, 32, 33,
+            31, 32, 33, 34,
+            32, 33, 34, 35,
+            0, 6, 12, 18,
+            1, 7, 13, 19,
+            2, 8, 14, 20,
+            3, 9, 15, 21,
+            4, 10, 16, 22,
+            5, 11, 17, 23,
+            6, 12, 18, 24,
+            7, 13, 19, 25,
+            8, 14, 20, 26,
+            9, 15, 21, 27,
+            10, 16, 22, 28,
+            11, 17, 23, 29,
+            12, 18, 24, 30,
+            13, 19, 25, 31,
+            14, 20, 26, 32,
+            15, 21, 27, 33,
+            16, 22, 28, 34,
+            17, 23, 29, 35,
+            2, 9, 16, 23,
+            1, 8, 15, 22,
+            8, 15, 22, 29,
+            0, 7, 14, 21,
+            7, 14, 21, 28,
+            14, 21, 28, 35,
+            6, 13, 20, 27,
+            13, 20, 27, 34,
+            12, 19, 26, 33,
+            3, 8, 13, 18,
+            4, 9, 14, 19,
+            9, 14, 19, 24,
+            5, 10, 15, 20,
+            10, 15, 20, 25,
+            15, 20, 25, 30,
+            11, 16, 21, 26,
+            16, 21, 26, 31,
+            17, 22, 27, 32
+        };
+        CheckWin(cells, indexes);
+    }
+    void check6x3()
+    {
+        int[] cells = { 0, 1, 2, 3 };
+        int[] indexes = {
+        0, 1, 2,
+        1, 2, 3,
+        2, 3, 4,
+        3, 4, 5,
+        6, 7, 8,
+        7, 8, 9,
+        8, 9, 10,
+        9, 10, 11,
+        12, 13, 14,
+        13, 14, 15,
+        14, 15, 16,
+        15, 16, 17,
+        18, 19, 20,
+        19, 20, 21,
+        20, 21, 22,
+        21, 22, 23,
+        24, 25, 26,
+        25, 26, 27,
+        26, 27, 28,
+        27, 28, 29,
+        30, 31, 32,
+        31, 32, 33,
+        32, 33, 34,
+        33, 34, 35,
+        0, 6, 12,
+        1, 7, 13,
+        2, 8, 14,
+        3, 9, 15,
+        4, 10, 16,
+        5, 11, 17,
+        6, 12, 18,
+        7, 13, 19,
+        8, 13, 20,
+        9, 14, 21,
+        10, 15, 22,
+        11, 16, 23,
+        12, 18, 24,
+        13, 19, 25,
+        14, 20, 26,
+        15, 21, 27,
+        16, 22, 28,
+        17, 23, 29,
+        18, 24, 30,
+        19, 25, 31,
+        20, 26, 32,
+        21, 27, 33,
+        22, 28, 34,
+        23, 29, 35,
+        3, 10, 17,
+        2, 9, 16,
+        9, 16, 23,
+        1, 8, 15,
+        8, 15, 22,
+        15, 22, 29,
+        0, 7, 14,
+        7, 14, 21,
+        14, 21, 28,
+        21, 28, 35,
+        6, 13, 20,
+        13, 20, 27,
+        20, 27, 34,
+        12, 19, 26,
+        19, 26, 33,
+        18, 25, 32,
+        2, 7, 12,
+        3, 8, 13,
+        8, 13, 18,
+        4, 9, 14,
+        9, 14, 19,
+        14, 19, 24,
+        5, 10, 15,
+        10, 15, 20,
+        15, 20, 25,
+        20, 25, 30,
+        11, 16, 21,
+        16, 21, 26,
+        21, 26, 31,
+        17, 22, 27,
+        22, 27, 32,
+        23, 28, 33
+    };
+        CheckWin(cells, indexes);
+    }
+
+    void CheckWin(int[] cells, int[] indexes)
+    {
+        string[] symbols = { "O", "X" };
+
+        foreach (string symbol in symbols)
+        {
+            for (int i = 0; i < indexes.Length; i += cells.Length)
+            {
+                bool isWin = true;
+                for (int j = 0; j < cells.Length; j++)
+                {
+                    int index = indexes[i + j];
+                    if (l[index].GetComponentInChildren<Text>().text != symbol)
+                    {
+                        isWin = false;
+                        break;
+                    }
+                }
+
+                if (isWin)
+                {
+                    wintxt.text = symbol == "O" ? "Player win" : "Computer win";
+                    win = true;
+                    return;
+                }
+            }
+        }
+    }
+    #endregion
+
+
+    #region Grid
+    /*private string[,] grid;
+    private void InitializeGrid()
+    {
+        grid = new string[gridnum, gridnum];
+        for (int x = 0; x < gridnum; x++)
+        {
+            for (int y = 0; y < gridnum; y++)
+            {
+                grid[x, y] = "";
+            }
+        }
+    }
+
+    private bool CheckWin(int x, int y, string player)
+    {
+        // Check horizontal
+        for (int i = 0; i < matchnum; i++)
+        {
+            if (x + i >= gridnum || grid[x + i, y] != player)
+            {
+                break;
+            }
+            if (i == matchnum - 1)
+            {
+                return true;
+            }
+        }
+
+        // Check vertical
+        for (int i = 0; i < matchnum; i++)
+        {
+            if (y + i >= gridnum || grid[x, y + i] != player)
+            {
+                break;
+            }
+            if (i == matchnum - 1)
+            {
+                return true;
+            }
+        }
+
+        // Check diagonal (top-left to bottom-right)
+        for (int i = 0; i < matchnum; i++)
+        {
+            if (x + i >= gridnum || y + i >= gridnum || grid[x + i, y + i] != player)
+            {
+                break;
+            }
+            if (i == matchnum - 1)
+            {
+                return true;
+            }
+        }
+
+        // Check diagonal (bottom-left to top-right)
+        for (int i = 0; i < matchnum; i++)
+        {
+            if (x + i >= gridnum || y - i < 0 || grid[x + i, y - i] != player)
+            {
+                break;
+            }
+            if (i == matchnum - 1)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsGridFull()
+    {
+        for (int x = 0; x < gridnum; x++)
+        {
+            for (int y = 0; y < gridnum; y++)
+            {
+                if (grid[x, y] == "")
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // You can modify this method to handle player moves and check for wins.
+    // For example, you can pass the player ("X" or "O") and the grid coordinates (x, y) to this method.
+    private void MakeMove(string player, int x, int y)
+    {
+        if (grid[x, y] == "")
+        {
+            grid[x, y] = player;
+
+            if (CheckWin(x, y, player))
+            {
+                Debug.Log(player + " wins!");
+            }
+            else if (IsGridFull())
+            {
+                Debug.Log("It's a draw!");
+            }
+        }
+    }*/
+    #endregion
+
+    #region Grid
+    void grid()
+    {
+        if (gridnum == 3)
+        {
+            AItern3x3();
+        }
+        else if (gridnum == 4)
+        {
+            if (matchnum == 3)
+            {
+                AItern4x3();
+            }
+            else
+            {
+                AItern4X4();
+            }
+        }
+        else if (gridnum == 5)
+        {
+            if (matchnum == 4)
+            {
+                AItern5X4();
+            }
+            else if (matchnum == 3)
+            {
+                AItern5X3();
+            }
+            else
+            {
+                AItern5X5();
+            }
+        }
+        else if (gridnum == 6)
+        {
+            if (matchnum == 5)
+            {
+                AItern6X5();
+            }
+            else if (matchnum == 4)
+            {
+                AItern6X4();
+            }
+            else if (matchnum == 3)
+            {
+                AItern6X3();
+            }
+            else
+            {
+                AItern6X6();
+            }
+        }
+    }
+    void AItern3x3()
+    {
+        int[,] n = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 7, 8 }, { 0, 4, 8 }, { 2, 4, 6 }, { 0, 3, 6 }, { 1, 4, 7 }, { 2, 5, 8 } };
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIThree3X3(n[i, 0], n[i, 1], n[i, 2], "X") == 1)
+            {
                 return;
             }
-            else if (CheckWin(i, j, "X"))
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIThree3X3(n[i, 0], n[i, 1], n[i, 2], "O") == 1)
             {
-                wintxt.text = "Computer win";
-                win = true;
                 return;
             }
         }
     }
-}
-
-bool CheckWin(int gridSize, int matchSize, string playerSymbol)
-{
-    int rows = gridSize + 3;
-    int cols = gridSize + 3;
-
-    // Check rows
-    for (int row = 0; row < rows; row++)
+    void AItern4X4()
     {
-        for (int col = 0; col <= cols - matchSize; col++)
+        int[,] n = { { 0, 1, 2, 3 }, { 4, 5, 6, 7 }, { 8, 9, 10, 11 }, { 12, 13, 14, 15 }, { 0, 4, 8, 12 }, { 1, 5, 9, 13 }, { 2, 6, 10, 14 }, { 3, 7, 11, 15 }, { 0, 5, 10, 15 }, { 3, 6, 9, 12 } };
+        for (int i = 0; i < n.GetLength(0); i++)
         {
-            bool win = true;
-            for (int k = 0; k < matchSize; k++)
+            if (AIFour4X4(n[i, 0], n[i, 1], n[i, 2], n[i, 3], "X") == 1)
             {
-                if (l[row * cols + col + k].GetComponentInChildren<Text>().text != playerSymbol)
-                {
-                    win = false;
-                    break;
-                }
+                return;
             }
-            if (win)
-                return true;
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIFour4X4(n[i, 0], n[i, 1], n[i, 2], n[i, 3], "O") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (four4(n[i, 0], n[i, 1], n[i, 2], n[i, 3]) == 1)
+            {
+                return;
+            }
         }
     }
-
-    // Check columns
-    for (int col = 0; col < cols; col++)
+    void AItern4x3()
     {
-        for (int row = 0; row <= rows - matchSize; row++)
+        int[,] n = { { 0, 1, 2 }, { 1, 2, 3 }, { 4, 5, 6 }, { 5, 6, 7 }, { 8, 9, 10 }, { 9, 10, 11 }, { 12, 13, 14 }, { 13, 14, 15 }, { 0, 4, 8 }, { 4, 8, 12 }, { 1, 5, 9 }, { 5, 9, 13 }, { 2, 6, 10 }, { 6, 10, 14 }, { 3, 7, 11 }, { 7, 11, 15 }, { 1, 6, 11 }, { 0, 5, 10 }, { 5, 10, 15 }, { 4, 9, 14 }, { 2, 5, 8 }, { 3, 6, 9 }, { 6, 9, 12 }, { 7, 10, 13 } };
+        for (int i = 0; i < n.GetLength(0); i++)
         {
-            bool win = true;
-            for (int k = 0; k < matchSize; k++)
+            if (AIThree3X3(n[i, 0], n[i, 1], n[i, 2], "X") == 1)
             {
-                if (l[(row + k) * cols + col].GetComponentInChildren<Text>().text != playerSymbol)
-                {
-                    win = false;
-                    break;
-                }
+                return;
             }
-            if (win)
-                return true;
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIThree3X3(n[i, 0], n[i, 1], n[i, 2], "O") == 1)
+            {
+                return;
+            }
         }
     }
-
-    // Check diagonals
-    for (int row = 0; row <= rows - matchSize; row++)
+    void AItern5X5()
     {
-        for (int col = 0; col <= cols - matchSize; col++)
+        int[,] n = { { 0, 1, 2, 3, 4 }, { 5, 6, 7, 8, 9 }, { 10, 11, 12, 13, 14 }, { 15, 16, 17, 18, 19 }, { 20, 21, 22, 23, 24 }, { 0, 5, 10, 15, 20 }, { 1, 6, 11, 16, 21 }, { 2, 7, 12, 17, 22 }, { 3, 8, 13, 18, 23 }, { 4, 9, 14, 19, 24 }, { 0, 6, 12, 18, 24 }, { 20, 16, 12, 8, 4 } };
+        for (int i = 0; i < n.GetLength(0); i++)
         {
-            bool win = true;
-            for (int k = 0; k < matchSize; k++)
+            if (AIFive5X5(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4], "X") == 1)
             {
-                if (l[(row + k) * cols + col + k].GetComponentInChildren<Text>().text != playerSymbol)
-                {
-                    win = false;
-                    break;
-                }
+                return;
             }
-            if (win)
-                return true;
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIFive5X5(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4], "O") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (five5(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4]) == 1) { return; }
         }
     }
+    void AItern5X3()
+    {
+        int[,] n = { { 0, 1, 2 }, { 1, 2, 3 }, { 2, 3, 4 }, { 5, 6, 7 }, { 6, 7, 8 }, { 7, 8, 9 }, { 10, 11, 12 }, { 11, 12, 13 }, { 12, 13, 14 }, { 15, 16, 17 }, { 16, 17, 18 }, { 17, 18, 19 }, { 20, 21, 22 }, { 21, 22, 23 }, { 22, 23, 24 }, { 0, 5, 10 }, { 1, 6, 11 }, { 2, 7, 12 }, { 3, 8, 13 }, { 4, 9, 14 }, { 5, 10, 15 }, { 6, 11, 16 }, { 7, 12, 17 }, { 8, 13, 18 }, { 9, 14, 19 }, { 10, 15, 20 }, { 11, 16, 21 }, { 12, 17, 22 }, { 13, 18, 23 }, { 14, 19, 24 }, { 2, 8, 14 }, { 1, 7, 13 }, { 7, 13, 19 }, { 0, 6, 12 }, { 6, 12, 18 }, { 12, 18, 24 }, { 5, 11, 17 }, { 11, 17, 23 }, { 10, 16, 22 }, { 2, 6, 10 }, { 3, 7, 11 }, { 7, 11, 15 }, { 4, 8, 12 }, { 8, 12, 16 }, { 12, 16, 20 }, { 9, 13, 17 }, { 13, 17, 21 }, { 14, 18, 22 }, { 0, 1, 2 }, { 1, 2, 3 }, { 2, 3, 4 }, { 5, 6, 7 }, { 6, 7, 8 }, { 7, 8, 9 }, { 10, 11, 12 }, { 11, 12, 13 }, { 12, 13, 14 }, { 15, 16, 17 }, { 16, 17, 18 }, { 17, 18, 19 }, { 20, 21, 22 }, { 21, 22, 23 }, { 22, 23, 24 }, { 0, 5, 10 }, { 1, 6, 11 }, { 2, 7, 12 }, { 3, 8, 13 }, { 4, 9, 14 }, { 5, 10, 15 }, { 6, 11, 16 }, { 7, 12, 17 }, { 8, 13, 18 }, { 9, 14, 19 }, { 10, 15, 20 }, { 11, 16, 21 }, { 12, 17, 22 }, { 13, 18, 23 }, { 14, 19, 24 }, { 2, 8, 14 }, { 1, 7, 13 }, { 7, 13, 19 }, { 0, 6, 12 }, { 6, 12, 18 }, { 12, 18, 24 }, { 5, 11, 17 }, { 11, 17, 23 }, { 10, 16, 22 }, { 2, 6, 10 }, { 3, 7, 11 }, { 7, 11, 15 }, { 4, 8, 12 }, { 8, 12, 16 }, { 12, 16, 20 }, { 9, 13, 17 }, { 13, 17, 21 }, { 14, 18, 22 } };
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIThree3X3(n[i, 0], n[i, 1], n[i, 2], "X") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIThree3X3(n[i, 0], n[i, 1], n[i, 2], "O") == 1)
+            {
+                return;
+            }
+        }
+    }
+    void AItern5X4()
+    {
+        int[,] n = { { 0, 1, 2, 3 }, { 1, 2, 3, 4 }, { 5, 6, 7, 8 }, { 6, 7, 8, 9 }, { 10, 11, 12, 13 }, { 11, 12, 13, 14 }, { 15, 16, 17, 18 }, { 16, 17, 18, 19 }, { 20, 21, 22, 23 }, { 21, 22, 23, 24 }, { 0, 5, 10, 15 }, { 1, 6, 11, 16 }, { 2, 7, 12, 17 }, { 3, 8, 13, 18 }, { 4, 9, 14, 19 }, { 5, 10, 15, 20 }, { 6, 11, 16, 21 }, { 7, 12, 17, 22 }, { 8, 13, 18, 23 }, { 9, 14, 19, 24 }, { 1, 7, 13, 19 }, { 0, 6, 12, 18 }, { 6, 12, 18, 24 }, { 5, 11, 17, 23 }, { 3, 7, 11, 15 }, { 4, 8, 12, 16 }, { 8, 12, 16, 20 }, { 9, 13, 17, 21 } };
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIFour4X4(n[i, 0], n[i, 1], n[i, 2], n[i, 3], "X") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIFour4X4(n[i, 0], n[i, 1], n[i, 2], n[i, 3], "O") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (four4(n[i, 0], n[i, 1], n[i, 2], n[i, 3]) == 1) { return; }
+        }
+    }
+    void AItern6X6()
+    {
+        int[,] n = { { 0, 1, 2, 3, 4, 5 }, { 6, 7, 8, 9, 10, 11 }, { 12, 13, 14, 15, 16, 17 }, { 18, 19, 20, 21, 22, 23 }, { 24, 25, 26, 27, 28, 29 }, { 30, 31, 32, 33, 34, 35 }, { 0, 6, 12, 18, 24, 30 }, { 1, 7, 13, 19, 25, 31 }, { 2, 8, 14, 20, 26, 32 }, { 3, 9, 15, 21, 27, 33 }, { 4, 10, 16, 22, 28, 34 }, { 5, 11, 17, 23, 29, 35 }, { 0, 7, 14, 21, 28, 35 }, { 5, 10, 15, 20, 25, 30 } };
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AISix6X6(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4], n[i, 5], "X") == 1) { return; }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AISix6X6(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4], n[i, 5], "O") == 1) { return; }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (six6(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4], n[i, 5]) == 1) { return; }
+        }
+    }
+    void AItern6X5()
+    {
+        int[,] n = { { 0, 1, 2, 3, 4 }, { 1, 2, 3, 4, 5 }, { 6, 7, 8, 9, 10 }, { 7, 8, 9, 10, 11 }, { 12, 13, 14, 15, 16 }, { 13, 14, 15, 16, 17 }, { 18, 19, 20, 21, 22 }, { 19, 20, 21, 22, 23 }, { 24, 25, 26, 27, 28 }, { 25, 26, 27, 28, 29 }, { 30, 31, 32, 33, 34 }, { 31, 32, 33, 34, 35 }, { 0, 6, 12, 18, 24 }, { 1, 7, 13, 19, 25 }, { 2, 8, 14, 20, 26 }, { 3, 9, 15, 21, 27 }, { 4, 10, 16, 22, 28 }, { 5, 11, 17, 23, 29 }, { 6, 12, 18, 24, 30 }, { 7, 13, 19, 25, 31 }, { 8, 14, 20, 26, 32 }, { 9, 15, 21, 27, 33 }, { 10, 16, 22, 28, 34 }, { 11, 17, 23, 29, 35 }, { 1, 8, 15, 22, 29 }, { 0, 7, 14, 21, 28 }, { 7, 14, 21, 28, 35 }, { 6, 13, 20, 27, 34 }, { 4, 9, 14, 19, 24 }, { 5, 10, 15, 20, 25 }, { 10, 15, 20, 25, 30 }, { 11, 16, 21, 26, 31 } };
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIFive5X5(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4], "X") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIFive5X5(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4], "O") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (five5(n[i, 0], n[i, 1], n[i, 2], n[i, 3], n[i, 4]) == 1) { return; }
+        }
+    }
+    void AItern6X4()
+    {
+        int[,] n = { { 0, 1, 2, 3 }, { 1, 2, 3, 4 }, { 2, 3, 4, 5 }, { 6, 7, 8, 9 }, { 7, 8, 9, 10 }, { 8, 9, 10, 11 }, { 12, 13, 14, 15 }, { 13, 14, 15, 16 }, { 14, 15, 16, 17 }, { 18, 19, 20, 21 }, { 19, 20, 21, 22 }, { 20, 21, 22, 23 }, { 24, 25, 26, 27 }, { 25, 26, 27, 28 }, { 26, 27, 28, 29 }, { 30, 31, 32, 33 }, { 31, 32, 33, 34 }, { 32, 33, 34, 35 }, { 0, 6, 12, 18 }, { 1, 7, 13, 19 }, { 2, 8, 14, 20 }, { 3, 9, 15, 21 }, { 4, 10, 16, 22 }, { 5, 11, 17, 23 }, { 6, 12, 18, 24 }, { 7, 13, 19, 25 }, { 8, 14, 20, 26 }, { 9, 15, 21, 27 }, { 10, 16, 22, 28 }, { 11, 17, 23, 29 }, { 12, 18, 24, 30 }, { 13, 19, 25, 31 }, { 14, 20, 26, 32 }, { 15, 21, 27, 33 }, { 16, 22, 28, 34 }, { 17, 23, 29, 35 }, { 2, 9, 16, 23 }, { 1, 8, 15, 22 }, { 8, 15, 22, 29 }, { 0, 7, 14, 21 }, { 7, 14, 21, 28 }, { 14, 21, 28, 35 }, { 6, 13, 20, 27 }, { 13, 20, 27, 34 }, { 12, 19, 26, 33 }, { 3, 8, 13, 18 }, { 4, 9, 14, 19 }, { 9, 14, 19, 24 }, { 5, 10, 15, 20 }, { 10, 15, 20, 25 }, { 15, 20, 25, 30 }, { 11, 16, 21, 26 }, { 16, 21, 26, 31 }, { 17, 22, 27, 32 } };
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIFour4X4(n[i, 0], n[i, 1], n[i, 2], n[i, 3], "X") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIFour4X4(n[i, 0], n[i, 1], n[i, 2], n[i, 3], "O") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (four4(n[i, 0], n[i, 1], n[i, 2], n[i, 3]) == 1) { return; }
+        }
+    }
+    void AItern6X3()
+    {
+        int[,] n = { { 0, 1, 2 }, { 1, 2, 3 }, { 2, 3, 4 }, { 3, 4, 5 }, { 6, 7, 8 }, { 7, 8, 9 }, { 8, 9, 10 }, { 9, 10, 11 }, { 12, 13, 14 }, { 13, 14, 15 }, { 14, 15, 16 }, { 15, 16, 17 }, { 18, 19, 20 }, { 19, 20, 21 }, { 20, 21, 22 }, { 21, 22, 23 }, { 24, 25, 26 }, { 25, 26, 27 }, { 26, 27, 28 }, { 27, 28, 29 }, { 30, 31, 32 }, { 31, 32, 33 }, { 32, 33, 34 }, { 33, 34, 35 }, { 0, 6, 12 }, { 1, 7, 13 }, { 2, 8, 14 }, { 3, 9, 15 }, { 4, 10, 16 }, { 5, 11, 17 }, { 6, 12, 18 }, { 7, 13, 19 }, { 8, 13, 20 }, { 9, 14, 21 }, { 10, 15, 22 }, { 11, 16, 23 }, { 12, 18, 24 }, { 13, 19, 25 }, { 14, 20, 26 }, { 15, 21, 27 }, { 16, 22, 28 }, { 17, 23, 29 }, { 18, 24, 30 }, { 19, 25, 31 }, { 20, 26, 32 }, { 21, 27, 33 }, { 22, 28, 34 }, { 23, 29, 35 }, { 3, 10, 17 }, { 2, 9, 16 }, { 9, 16, 23 }, { 1, 8, 15 }, { 8, 15, 22 }, { 15, 22, 29 }, { 0, 7, 14 }, { 7, 14, 21 }, { 14, 21, 28 }, { 21, 28, 35 }, { 6, 13, 20 }, { 13, 20, 27 }, { 20, 27, 34 }, { 12, 19, 26 }, { 19, 26, 33 }, { 18, 25, 32 }, { 2, 7, 12 }, { 3, 8, 13 }, { 8, 13, 18 }, { 4, 9, 14 }, { 9, 14, 19 }, { 14, 19, 24 }, { 5, 10, 15 }, { 10, 15, 20 }, { 15, 20, 25 }, { 20, 25, 30 }, { 11, 16, 21 }, { 16, 21, 26 }, { 21, 26, 31 }, { 17, 22, 27 }, { 22, 27, 32 }, { 23, 28, 33 }, { 0, 1, 2 }, { 1, 2, 3 }, { 2, 3, 4 }, { 3, 4, 5 }, { 6, 7, 8 }, { 7, 8, 9 }, { 8, 9, 10 }, { 9, 10, 11 }, { 12, 13, 14 }, { 13, 14, 15 }, { 14, 15, 16 }, { 15, 16, 17 }, { 18, 19, 20 }, { 19, 20, 21 }, { 20, 21, 22 }, { 21, 22, 23 }, { 24, 25, 26 }, { 25, 26, 27 }, { 26, 27, 28 }, { 27, 28, 29 }, { 30, 31, 32 }, { 31, 32, 33 }, { 32, 33, 34 }, { 33, 34, 35 }, { 0, 6, 12 }, { 1, 7, 13 }, { 2, 8, 14 }, { 3, 9, 15 }, { 4, 10, 16 }, { 5, 11, 17 }, { 6, 12, 18 }, { 7, 13, 19 }, { 8, 13, 20 }, { 9, 14, 21 }, { 10, 15, 22 }, { 11, 16, 23 }, { 12, 18, 24 }, { 13, 19, 25 }, { 14, 20, 26 }, { 15, 21, 27 }, { 16, 22, 28 }, { 17, 23, 29 }, { 18, 24, 30 }, { 19, 25, 31 }, { 20, 26, 32 }, { 21, 27, 33 }, { 22, 28, 34 }, { 23, 29, 35 }, { 3, 10, 17 }, { 2, 9, 16 }, { 9, 16, 23 }, { 1, 8, 15 }, { 8, 15, 22 }, { 15, 22, 29 }, { 0, 7, 14 }, { 7, 14, 21 }, { 14, 21, 28 }, { 21, 28, 35 }, { 6, 13, 20 }, { 13, 20, 27 }, { 20, 27, 34 }, { 12, 19, 26 }, { 19, 26, 33 }, { 18, 25, 32 }, { 2, 7, 12 }, { 3, 8, 13 }, { 8, 13, 18 }, { 4, 9, 14 }, { 9, 14, 19 }, { 14, 19, 24 }, { 5, 10, 15 }, { 10, 15, 20 }, { 15, 20, 25 }, { 20, 25, 30 }, { 11, 16, 21 }, { 16, 21, 26 }, { 21, 26, 31 }, { 17, 22, 27 }, { 22, 27, 32 }, { 23, 28, 33 } };
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIThree3X3(n[i, 0], n[i, 1], n[i, 2], "X") == 1)
+            {
+                return;
+            }
+        }
+        for (int i = 0; i < n.GetLength(0); i++)
+        {
+            if (AIThree3X3(n[i, 0], n[i, 1], n[i, 2], "O") == 1)
+            {
+                return;
+            }
+        }
 
-    return false;
+    }
+
+
+    int AICheck(int[] positions, string sq)
+    {
+        bool allMatch = true;
+        int emptyPosition = -1;
+
+        for (int i = 0; i < positions.Length; i++)
+        {
+            if (l[positions[i]].GetComponentInChildren<Text>().text != sq)
+            {
+                allMatch = false;
+            }
+
+            if (l[positions[i]].GetComponentInChildren<Text>().text == "")
+            {
+                emptyPosition = positions[i];
+            }
+        }
+
+        if (allMatch && emptyPosition != -1)
+        {
+            PlayerPrefs.SetInt("AI", emptyPosition);
+            return 1;
+        }
+
+        return 0;
+    }
+
+    int AINXN(int[] positions, string sq)
+    {
+        int result = 0;
+        int[] temp = new int[positions.Length];
+
+        for (int i = 0; i < positions.Length; i++)
+        {
+            temp[i] = positions[i];
+        }
+
+        for (int i = 0; i < positions.Length; i++)
+        {
+            int tempValue = temp[0];
+            for (int j = 0; j < temp.Length - 1; j++)
+            {
+                temp[j] = temp[j + 1];
+            }
+            temp[temp.Length - 1] = tempValue;
+
+            result = AICheck(temp, sq);
+            if (result == 1)
+            {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    int AIThree3X3(int a, int b, int c, string sq)
+    {
+        int[] positions = { a, b, c };
+        return AINXN(positions, sq);
+    }
+
+    int AIFour4X4(int a, int b, int c, int d, string sq)
+    {
+        int[] positions = { a, b, c, d };
+        return AINXN(positions, sq);
+    }
+
+    int AIFive5X5(int a, int b, int c, int d, int e, string sq)
+    {
+        int[] positions = { a, b, c, d, e };
+        return AINXN(positions, sq);
+    }
+
+    int AISix6X6(int a, int b, int c, int d, int e, int f, string sq)
+    {
+        int[] positions = { a, b, c, d, e, f };
+        return AINXN(positions, sq);
+    }
+
+
+    int CheckForWin(int[] positions)
+    {
+        foreach (int[] winCombo in winningCombinations)
+        {
+            int countX = 0;
+            int countO = 0;
+
+            foreach (int position in winCombo)
+            {
+                if (l[position].GetComponentInChildren<Text>().text == "X")
+                {
+                    countX++;
+                }
+                else if (l[position].GetComponentInChildren<Text>().text == "O")
+                {
+                    countO++;
+                }
+            }
+
+            if (countX == 4 && countO == 0)
+            {
+                foreach (int position in winCombo)
+                {
+                    if (l[position].GetComponentInChildren<Text>().text == "")
+                    {
+                        PlayerPrefs.SetInt("AI", position);
+                        return 1;
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    //int[] GetEmptyPositions()
+    //{
+    //    List<int> emptyPositions = new List<int>();
+    //    for (int i = 0; i < l.Count; i++)
+    //    {
+    //        if (l[i].GetComponentInChildren<Text>().text == "")
+    //        {
+    //            emptyPositions.Add(i);
+    //        }
+    //    }
+    //    return emptyPositions.ToArray();
+    //}
+
+    int four4(int a, int b, int c, int d)
+    {
+        int[] positions = { a, b, c, d };
+        return CheckForWin(positions);
+    }
+
+    int five5(int a, int b, int c, int d, int e)
+    {
+        int[] positions = { a, b, c, d, e };
+        return CheckForWin(positions);
+    }
+
+    int six6(int a, int b, int c, int d, int e, int f)
+    {
+        int[] positions = { a, b, c, d, e, f };
+        return CheckForWin(positions);
+    }
+
+    // Define your winning combinations here (assuming 0-8 positions).
+    int[][] winningCombinations = {
+    // Rows
+    new int[] {0, 1, 2},
+    new int[] {3, 4, 5},
+    new int[] {6, 7, 8},
+
+    // Columns
+    new int[] {0, 3, 6},
+    new int[] {1, 4, 7},
+    new int[] {2, 5, 8},
+
+    // Diagonals
+    new int[] {0, 4, 8},
+    new int[] {2, 4, 6}
+    // Add other combinations if needed...
+    };
+
+
+    #endregion
 }
