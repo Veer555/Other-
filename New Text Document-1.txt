@@ -1,44 +1,234 @@
-public void Check()
+27/08/23 new for simpleai
+
+using UnityEngine;
+using UnityEngine.UI;
+using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+
+public class GameManager : MonoBehaviour
 {
-    // Check rows, columns, and diagonals
-    for (int i = 0; i < gridnum; i++)
+    public GameObject button_Prefab;
+    public GameObject button_Holder;
+    public Text winText, playerText;
+    public Material greenButtonMaterial;
+    private int gridnum = 3, matchnum = 3;
+    public List<GameObject> AddBtnArray = new List<GameObject>();
+    public List<int> winningButtonIndices = new List<int>();
+    private bool isWin = false;
+    private play p;
+
+    // Add an enum to represent player turns
+    private enum PlayerTurn
     {
-        for (int j = 0; j <= gridnum - matchnum; j++)
+        PlayerA,
+        PlayerB
+    }
+
+    private PlayerTurn currentPlayer = PlayerTurn.PlayerA;
+
+    void Start()
+    {
+        p = FindObjectOfType<play>();
+        gridnum = p.gridnum;
+        matchnum = p.matchnum;
+
+        SetCellSize();
+
+        for (int i = 0; i < gridnum * gridnum; i++)
         {
-            // Check rows
-            CheckLine(i * gridnum + j, 1);
+            GameObject g = Instantiate(button_Prefab, button_Holder.transform);
+            Button button = g.GetComponent<Button>();
+            Text buttonText = g.GetComponentInChildren<Text>();
+            buttonText.text = "";
+            button.onClick.AddListener(() => Click(g));
+            AddBtnArray.Add(g);
+        }
 
-            // Check columns
-            CheckLine(j * gridnum + i, gridnum);
+        // Start the game with Player A
+        playerText.text = "Player A";
+    }
 
-            // Check diagonals
-            if (i <= gridnum - matchnum)
+    private void SetCellSize()
+    {
+        float cellSize = 91f;
+        switch (gridnum)
+        {
+            case 4:
+                cellSize = 68f;
+                break;
+            case 5:
+                cellSize = 54f;
+                break;
+            case 6:
+                cellSize = 45f;
+                break;
+        }
+
+        button_Holder.GetComponent<GridLayoutGroup>().cellSize = new Vector2(cellSize, cellSize);
+    }
+
+    public void Click(GameObject g)
+    {
+        if (isWin) return;
+
+        int filledCount = CountFilledButtons();
+        Text buttonText = g.GetComponentInChildren<Text>();
+        Button button = g.GetComponent<Button>();
+
+        if (string.IsNullOrEmpty(buttonText.text))
+        {
+            buttonText.text = (currentPlayer == PlayerTurn.PlayerA) ? "O" : "X";
+            playerText.text = (currentPlayer == PlayerTurn.PlayerA) ? "Player B" : "Player A";
+
+            button.interactable = false;
+            check();
+
+            // Switch to the other player's turn
+            currentPlayer = (currentPlayer == PlayerTurn.PlayerA) ? PlayerTurn.PlayerB : PlayerTurn.PlayerA;
+
+            // Call the AI's turn
+            if (currentPlayer == PlayerTurn.PlayerB)
             {
-                if (j <= gridnum - matchnum)
-                    CheckLine(i * gridnum + j, gridnum + 1);
-                if (j >= matchnum - 1)
-                    CheckLine(i * gridnum + j + matchnum - 1, gridnum - 1);
+                AITurn();
             }
         }
     }
-}
 
-void CheckLine(int startIndex, int step)
-{
-    string player = "";
-
-    for (int i = 0; i < matchnum; i++)
+    private int CountFilledButtons()
     {
-        string cellText = l[startIndex + i * step].GetComponentInChildren<Text>().text;
-        if (string.IsNullOrEmpty(player))
-            player = cellText;
-        else if (cellText != player)
-            return;
+        int count = 0;
+        foreach (GameObject buttonObject in AddBtnArray)
+        {
+            Text buttonText = buttonObject.GetComponentInChildren<Text>();
+            if (!string.IsNullOrEmpty(buttonText.text))
+            {
+                count++;
+            }
+        }
+        return count;
     }
 
-    if (!string.IsNullOrEmpty(player))
+    public bool check()
     {
-        wintxt.text = player == "O" ? "Player A win" : "Player B win";
-        win = true;
+        for (int i = 0; i < gridnum; i++)
+        {
+            for (int j = 0; j < gridnum; j++)
+            {
+                if (CheckWin(i, j))
+                {
+                    if (AddBtnArray[i * gridnum + j].GetComponentInChildren<Text>().text == "O")
+                    {
+                        winText.text = "Player A wins";
+                    }
+                    else if (AddBtnArray[i * gridnum + j].GetComponentInChildren<Text>().text == "X")
+                    {
+                        winText.text = "Player B wins";
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private bool CheckWin(int row, int col)
+    {
+        string symbol = AddBtnArray[row * gridnum + col].GetComponentInChildren<Text>().text;
+
+        if (string.IsNullOrEmpty(symbol))
+        {
+            return false;
+        }
+
+        // Check horizontally
+        for (int i = 0; i < matchnum; i++)
+        {
+            if (col + i >= gridnum || AddBtnArray[row * gridnum + col + i].GetComponentInChildren<Text>().text != symbol)
+            {
+                break;
+            }
+
+            if (i == matchnum - 1)
+            {
+                return true;
+            }
+        }
+
+        // Check vertically
+        for (int i = 0; i < matchnum; i++)
+        {
+            if (row + i >= gridnum || AddBtnArray[(row + i) * gridnum + col].GetComponentInChildren<Text>().text != symbol)
+            {
+                break;
+            }
+
+            if (i == matchnum - 1)
+            {
+                return true;
+            }
+        }
+
+        // Check diagonally (top-left to bottom-right)
+        if (row + matchnum <= gridnum && col + matchnum <= gridnum)
+        {
+            for (int i = 0; i < matchnum; i++)
+            {
+                if (AddBtnArray[(row + i) * gridnum + col + i].GetComponentInChildren<Text>().text != symbol)
+                {
+                    break;
+                }
+
+                if (i == matchnum - 1)
+                {
+                    return true;
+                }
+            }
+        }
+
+        // Check diagonally (top-right to bottom-left)
+        if (row + matchnum <= gridnum && col - matchnum + 1 >= 0)
+        {
+            for (int i = 0; i < matchnum; i++)
+            {
+                if (AddBtnArray[(row + i) * gridnum + col - i].GetComponentInChildren<Text>().text != symbol)
+                {
+                    break;
+                }
+
+                if (i == matchnum - 1)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Add the AI's turn logic
+    private void AITurn()
+    {
+        // Replace this with your AI logic.
+        // For example, you can make a random move by selecting an empty button.
+        List<GameObject> emptyButtons = new List<GameObject>();
+        foreach (GameObject buttonObject in AddBtnArray)
+        {
+            Text buttonText = buttonObject.GetComponentInChildren<Text>();
+            if (string.IsNullOrEmpty(buttonText.text))
+            {
+                emptyButtons.Add(buttonObject);
+            }
+        }
+
+        if (emptyButtons.Count > 0)
+        {
+            int randomIndex = Random.Range(0, emptyButtons.Count);
+            Click(emptyButtons[randomIndex]);
+        }
+    }
+
+    public void restart()
+    {
+        SceneManager.LoadScene("play");
     }
 }
